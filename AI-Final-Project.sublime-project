@@ -9,12 +9,18 @@
 	[
 		{
 			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
-			"name": "Anaconda Python Builder",
+			"name": "pipenv Terminus",
 			"selector": "source.python",
 			"shell_cmd": "pipenv run \"python\" -u \"$file\"",
 
 			"target": "terminus_exec",
-    		"cancel": "terminus_cancel_build"
-		}
+    		"cancel": "terminus_cancel_build",
+		},
+		{
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+			"shell_cmd": "\"python\" -u \"$file\""
+		},
 	],
 }
