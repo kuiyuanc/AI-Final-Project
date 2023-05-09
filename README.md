@@ -20,3 +20,6 @@ Our ultimate objective is to create an app that offers anime recommendations to 
 
 ## Evaluation
 `loss function = 2nd-norm of the guess vector, where each element represents the inferred rating of a given review`
+
+## Architecture
+[AI-Final-Project Architecture](https://s.icepanel.io/aGwqBeeGagleEb/HYZb)
