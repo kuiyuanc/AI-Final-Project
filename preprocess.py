@@ -4,6 +4,9 @@ from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
 
+import os
+import csv
+
 
 def get_wordnet_pos(treebank_tag):
     if treebank_tag.startswith('J'):
@@ -27,19 +30,37 @@ def lemmatize_sent(sent):
     return result
 
 
-review0 = """Animation - 8/10 Does very well in some parts but sadly, comes a bit short at others. The fights are consistently well animated for the most part. There's no end to the blood and gore when fighters are sliced and pierced, it's satisfying and tactful. The final episode was some of the best it had to offer and was a joy to behold. It seems it benefitted this studio dealing with more limiting sword-fighting and basic magic spells really allowed the studio to nail animation in crucial areas, ensuring every swing packs a punch, unmistakably they have learnt well from their previous work, "Darwin's Game". They also had prior work in "Rakudai Kishi" to hone their craft. I personally consider this(8/10) as the highest tier for less distinguished studios as it's Impossible for any non- "ufotable/David/Mappa/Madhouse/Wit/A1" show in 2023 to get past 8/10(in animation) as you risk insulting the truly peerless works from those studios."""
+"""
+如果要執行程式必須將要import的csv檔存在data這個資料夾下
+或更改下面'./data' and './data/'
+"""
 
-output = []
-sentences = sent_tokenize(review0)
+reviews = []
+data_files = os.listdir('./data')
+for file in data_files:
+    csvfile = open('./data/' + file, newline='', encoding="utf-8")
+    reader = csv.reader(csvfile)
+    for name, text, rating in reader:
+        if name == 'Anime':
+            continue
+        rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
+        reviews.append([name, text, rate])
+    csvfile.close()
+
+preprocess_list = []
 stop_words = set(stopwords.words("english"))
-stop_words.update([',', '.','\'\''])
+stop_words.update([',', '.', '\'\''])
+for review in reviews:
+    tempt = []
+    sentences = sent_tokenize(reviews[0][1])
+    for sentence in sentences:
+        words = lemmatize_sent(sentence)
+        for word in words:
+            if word not in stop_words:
+                tempt.append(word)
+    preprocess_list.append(tempt)
 
-for sentence in sentences:
-    words = lemmatize_sent(sentence)
-    for word in words:
-        if word not in stop_words:
-            output.append(word)
-
-# print(output)
-freq = nltk.FreqDist(output)
-freq.plot()
+freqs = []
+for single_review in preprocess_list:
+    freq = nltk.FreqDist(single_review)
+    freqs.append(freq)
