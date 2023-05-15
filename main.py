@@ -1,25 +1,23 @@
+from database import database
+from crawler import crawler
+from rater import rater
+from ui import ui
+
 class anime_recommender:
     """docstring for animeRecommender"""
 
     def __init__(self):
+        self.animes = None
+        self.reviews = None
+        self.models = None
+        self.crawler = None
+        self.rater = None
+        self.ui = None
+
+    def train(self):
         pass
 
-    def load_animes(self):
-        pass
-
-    def load_reviews(self):
-        pass
-
-    def save_animes(self):
-        pass
-
-    def save_reviews(self):
-        pass
-
-    def update_animes(self, anime_name, review_rating):
-        pass
-
-    def update_reviews(self, review_ID, review_rating):
+    def build(self):
         pass
 
     def run(self):
@@ -28,4 +26,5 @@ class anime_recommender:
 
 if __name__ == '__main__':
     ar = anime_recommender()
+    ar.train()
     ar.run()

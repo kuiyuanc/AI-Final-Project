@@ -1,20 +1,24 @@
-class one_layer_neural_network:
-    """docstring for oneLayerNeuralNetwork"""
+from pre_processor import pre_processor
 
-    def __init__(self, model=None):
+
+class rater:
+    """docstring for rater"""
+
+    def __init__(self):
+        self.agent = None
+        self.pre_processor = None
+
+    def train(self, reviews, golden_ratings):
         pass
 
-    def split_Dataset(self):
+    def test(self, reviews, golden_ratings):
         pass
 
-    def train(self, TFIDFs, golden_ratings):
+    def load(self, model):
         pass
 
-    def validate(self, TFIDFs, golden_ratings):
+    def save(self, path):
         pass
 
-    def evaluate(self, TFIDFs, golden_ratings):
-        pass
-
-    def rate(self, review_body):
+    def rate(self, review):
         pass

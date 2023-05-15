@@ -1,4 +1,4 @@
-class pre_proccesor:
+class pre_processor:
     """docstring for preProccesor"""
 
     def __init__(self):
@@ -7,8 +7,11 @@ class pre_proccesor:
     def lemmatize(self, sentence):
         pass
 
-    def word_freqs(self, review):
+    def word_freq(self, review):
         pass
 
-    def TFIDF(self):
+    def word_set(self, reviews):
+        pass
+
+    def TFIDF(self, word_freq):
         pass

@@ -1,12 +1,12 @@
-class gui:
+class ui:
     """docstring for ui"""
 
     def __init__(self):
-        pass
+        self.animes = None
 
 
-class ui:
-    """docstring for ui"""
+class gui:
+    """docstring for gui"""
 
     def __init__(self):
         pass
