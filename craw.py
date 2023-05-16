@@ -38,11 +38,11 @@ def scrawOnePage(url,name):
             table.append([name,s,rating_list[time]])
             tmp += s
             time += 1
-   
-    with open('review.csv',"a+",encoding='UTF-8') as csvfile:
+
+    with open('review.csv',"a+",encoding='UTF-8',newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Anime', 'Reviews','Rating'])
         writer.writerows(table)
+    
     # with open( name + "_review.txt","w", encoding='UTF-8') as file:
     #     file.write(tmp)
 
@@ -63,9 +63,12 @@ with open('reviews/top50_url.txt','w',encoding='UTF-8') as file:
             urls.append(sub['href'])
             count += 1
 #get reviews of top50 animes
+with open('review.csv',"a+",encoding='UTF-8',newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Anime', 'Reviews','Rating'])
 for url in urls:
     count = 0
-    name = ''
+    name = ''   
     for c in url:
         if c == '/' and count < 5:
             count += 1
