@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 nltk = "*"
 bs4 = "*"
+tensorflow = "*"
 
 [dev-packages]
 
