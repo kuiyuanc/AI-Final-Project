@@ -2,10 +2,10 @@ from pre_processor import pre_processor
 import numpy as np
 from tensorflow.keras.preprocessing import sequence
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential
+from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers.embeddings import Embedding
 from tensorflow.python.keras.layers.recurrent import LSTM
-from keras.layers.core import Activation, Dense
+from tensorflow.python.keras.layers.core import Activation, Dense
 
 
 class rater:
@@ -48,7 +48,7 @@ class rater:
             Activation("sigmoid")
         ]
         self.agents['LSTM'] = Sequential(layers)
-        self.agents['LSTM'].compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
+        self.agents['LSTM'].compile(loss="mean_squared_error", optimizer="adam")
 
         # train model
         BATCH_SIZE = 32
@@ -67,14 +67,15 @@ class rater:
 
         BATCH_SIZE = 32
         NUM_EPOCHS = 10
-        VERBOSE = 'auto'
-        self.agents['LSTM'].evaluate(X, y, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS, verbose=VERBOSE)
+        VERBOSE = 1
+        self.agents['LSTM'].evaluate(X, y, batch_size=BATCH_SIZE, verbose=VERBOSE)
 
     def load(self, models):
         pass
 
     def save(self, path):
-        pass
+        for name, agent in self.agents.items():
+            agent.save(f'{path}/{name}.keras')
 
     def rate(self, doc):
-        return [round(agent(self.pre_processor.pre_process(doc))[0] * 10) for agent in self.agents.values()]
+        return [agent(self.pre_processor.pre_process(doc))[0] * 10 for agent in self.agents.values()]
