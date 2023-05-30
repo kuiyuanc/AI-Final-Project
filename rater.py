@@ -59,8 +59,8 @@ class rater:
                 print(f'epoch {x}:')
                 history = self.agents[agent].fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
                 self.training_history[agent].append(history)
-                self.agents[agent].save(f'models/LSTM-all-max-new/LSTM-all-max-new {x}.keras')
-                with open(f'models/LSTM-all-max-new/LSTM-all-max-new {x}.json', 'w') as f:
+                self.agents[agent].save(f'models/base-all-max-new/base-all-max-new {x}.keras')
+                with open(f'models/base-all-max-new/base-all-max-new {x}.json', 'w') as f:
                     json.dump(self.training_history[agent][-1].history, f)
 
             print('\ntest:')

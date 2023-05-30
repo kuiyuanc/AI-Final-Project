@@ -60,7 +60,7 @@ def quick_try():
 
     r = rater()
     r.build(texts, ratings, None, input_len='max')
-    r.load('LSTM-all-max-new')
+    r.load('base-all-max-new')
 
     # train & validate rater
     r.train('LSTM')
