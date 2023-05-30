@@ -8,6 +8,15 @@ from tensorflow.python.keras.layers.recurrent import LSTM
 from tensorflow.python.keras.layers.core import Dense
 
 
+# TODO
+NUM_VOCAB_OLD = 2000
+NUM_VOCAB_NEW = 2000
+INPUT_LENGTH_AVG_OLD = 1000
+INPUT_LENGTH_AVG_NEW = 1000
+INPUT_LENGTH_MAX_OLD = 1000
+INPUT_LENGTH_MAX_NEW = 1000
+
+
 class model:
     """docstring for model"""
 
@@ -16,13 +25,14 @@ class model:
         self.max_feature = max_feature
         self.input_len = input_len
         self.dataset = dataset
+        self.epoch = 0
 
         self.pre_processor = pre_processor()
         self.model = Sequential()
         self.training_history = []
 
     def __str__(self):
-        return self.category + '-' + str(self.max_feature) + '-' + self.input_len + '-' + self.dataset
+        return self.category + '-' + self.max_feature + '-' + self.input_len + '-' + self.dataset
 
     def batch(self, docs, golden_ratings):
         raise NotImplementedError
@@ -33,82 +43,88 @@ class model:
     def build(self):
         raise NotImplementedError
 
-    def train(self, path, start_epoch=0):
+    def train(self, path):
         TRAIN_SIZE = 0.8
         TEST_SIZE = 0.1
         BATCH_SIZE = 32
         NUM_EPOCHS = 10
         VERBOSE = 1
 
-        print('data formatting...\n')
-        X, y = self.batch()
-        Xtrain, Xval, Xtest, ytrain, yval, ytest = self.pre_processor.split(X, y, TRAIN_SIZE, TEST_SIZE)
+        Xtrain, Xval, Xtest, ytrain, yval, ytest = self.pre_processor.split(self.X, self.y,
+                                                                            TRAIN_SIZE, TEST_SIZE)
 
-        print('train:')
-        for i in range(start_epoch, NUM_EPOCHS):
-            print(f'epoch {i}:')
+        for i in range(self.epoch + 1, NUM_EPOCHS):
             history = self.model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
             self.training_history.append(history)
-            self.save(path + str(self) + f' {i}')
+            self.epoch += 1
+            self.save(path)
 
-        print('\ntest:')
         self.model.evaluate(Xtest, ytest, batch_size=BATCH_SIZE, verbose=VERBOSE)
 
-    def load(self, name):
-        print(f'{name} loading...')
-        self.model = load_model(name + '.keras')
-        # self.training_history = json.load(name + '.json')
+    def load(self, path, epoch):
+        self.epoch = epoch
+        self.model = load_model(path + str(self) + f' {epoch}.keras')
 
-    def save(self, name):
-        print(f'{name} saving...')
-        self.model.save(name + '.keras')
-        with open(name + '.json', 'wb') as history_file:
-            json.dump(self.training_history.history, history_file)
-        with open(name + ' info.json', 'wb') as info_file:
-            json.dump({'max_feature': self.max_feature, 'input_len': self.input_len}, info_file)
+    def save(self, path):
+        self.model.save(path + str(self) + f' {self.epoch}.keras')
+        with open(path + str(self) + f' {self.epoch}.json', 'w') as history_file:
+            json.dump(self.training_history[-1].history, history_file)
 
     def rate(self, doc):
         return self.model.predict(self.single(doc))[0][0] * 10
 
 
-class LSTM(model):
-    """docstring for LSTM"""
+class base(model):
+    """docstring for base"""
 
     def __init__(self, category, max_feature, input_len, dataset):
-        super(LSTM, self).__init__(category, max_feature, input_len, dataset)
+        super(base, self).__init__(category, max_feature, input_len, dataset)
 
     def batch(self, docs, golden_ratings):
-        print('pre-processor loading...')
         self.pre_processor.load(docs)
 
-        self.max_feature = min(self.max_feature, self.pre_processor.num_vocab())
-        print(f'max feature = {self.max_feature}')
+        if self.max_feature == '2k':
+            MAX_FEATURE = 2000
+        elif self.dataset == 'old':
+            MAX_FEATURE = NUM_VOCAB_OLD
+        else:
+            MAX_FEATURE = NUM_VOCAB_NEW
 
-        self.input_len = self.pre_processor.max_doc_len() if self.input_len == 'max'\
-            else self.pre_processor.avg_doc_len()
-        print(f'input len = {self.input_len}')
+        if self.input_len == 'avg':
+            INPUT_LENGTH = INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
+        else:
+            INPUT_LENGTH = INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
 
-        one_hot_docs = [[word if word < self.max_feature else self.pre_processor.__UNK for word in doc]
+        one_hot_docs = [[word if word < MAX_FEATURE else 1 for word in doc]
                         for doc in self.pre_processor.one_hot_docs]
 
         X = np.array(one_hot_docs, dtype=object)
-        X = sequence.pad_sequences(X, maxlen=self.input_len)
-        y = np.array(golden_ratings)
-        return X, y
+        self.X = sequence.pad_sequences(X, maxlen=INPUT_LENGTH)
+        self.y = np.array(golden_ratings)
 
     def single(self, doc):
         one_hot_doc = [self.pre_processor.one_hot(word) if word < self.max_feature
-                       else self.pre_processor.__UNK for word in self.pre_processor.lemmatize(doc)]
+                       else self.pre_processor.UNK for word in self.pre_processor.lemmatize(doc)]
         return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.input_len)
 
     def build(self):
-        print('model building...\n')
         EMBEDDING_SIZE = 128
         HIDDEN_LAYER_SIZE = 64
-        NUM_VOCAB = self.max_feature + 2
+
+        if self.max_feature == '2k':
+            NUM_VOCAB = 2000
+        elif self.dataset == 'old':
+            NUM_VOCAB = NUM_VOCAB_OLD
+        else:
+            NUM_VOCAB = NUM_VOCAB_NEW
+
+        if self.input_len == 'avg':
+            INPUT_LENGTH = INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
+        else:
+            INPUT_LENGTH = INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
 
         self.model = Sequential()
-        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.input_len))
+        self.model.add(Embedding(NUM_VOCAB + 2, EMBEDDING_SIZE, input_length=INPUT_LENGTH))
         self.model.add(LSTM(HIDDEN_LAYER_SIZE, dropout=0.2, recurrent_dropout=0.2))
         self.model.add(Dense(1, activation='sigmoid'))
         self.model.compile(loss="mean_squared_error", optimizer="adam")

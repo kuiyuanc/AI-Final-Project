@@ -4,7 +4,7 @@
 
 import os
 import csv
-from model import LSTM
+from model import base, double_LSTM
 from pre_processor import pre_processor
 
 
@@ -15,14 +15,6 @@ class anime_review_rater:
         self.animes = []
         self.reviews = []
         self.models = {}
-
-    def load(self, dataset='new'):
-        print('load csv...')
-        self.load_reviews(dataset)
-        self.load_animes()
-
-        # print('load models...')
-        # self.load_models()
 
     def load_reviews(self, dataset):
         with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
@@ -43,24 +35,32 @@ class anime_review_rater:
                           for genre in genres.split(',')]
                 self.animes.append([anime, genres, float(rating)])
 
-    def load_models(self):
-        raise NotImplementedError
+    def load_model(self, name, epoch):
+        category, _, _, _ = name.split('-')
 
-        for name in os.listdir('models'):
-            category, max_feature, input_len, dataset = name.split('-')
-            max_feature = 10**1000 if max_feature == 'all' else int(max_feature)
+        if category == 'base':
+            self.models[name] = base(*name.split('-'))
+        elif category == 'double_LSTM':
+            self.models[name] = double_LSTM(*name.split('-'))
 
-            self.models[name] = model(category, max_feature, input_len, dataset)
+        self.models[name].load(f'models/{name}/', epoch)
 
-            latest = max(os.listdir(f'models/{name}'))
-            self.models[name].load(f'models/{latest}.csv')
+    def build(self, category, max_feature, input_len, dataset):
+        name = category + '-' + max_feature + '-' + input_len + '-' + dataset
 
-    def train(self, model):
-        raise NotImplementedError
+        if category == 'base':
+            self.models[name] = base(category, max_feature, input_len, dataset)
+        elif category == 'double_LSTM':
+            self.models[name] = double_LSTM(category, max_feature, input_len, dataset)
 
-        print('transpose table...\n')
+        self.models[name].build()
+
+    def train(self, name, start_epoch=0):
         names, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
+        self.models[name].batch(texts[:32], ratings[:32])
+
+        self.models[name].train(f'models/{name}/')
 
 
 def pre_process():
@@ -76,13 +76,31 @@ def pre_process():
             md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
 
 
-if __name__ == '__main__':
+def train(category, max_feature, input_len, dataset, start_epoch=0):
+    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+
     arr = anime_review_rater()
-    arr.load('old')
-    names, texts, ratings = zip(*arr.reviews)
-    ratings = [rating / 10 for rating in ratings]
-    m = LSTM('LSTM', 2000, 'avg', 'old')
-    m.batch(texts, ratings)
-    m.build()
-    m.train(f'models/{str(m)}/')
-    m.rate('Are you stupid ?')
+    arr.load_reviews(dataset)
+
+    if start_epoch:
+        if name not in os.listdir('models'):
+            raise RuntimeError(f'model {name} does not exist')
+        elif name + ' ' + str(start_epoch - 1) + '.keras' not in os.listdir(f'models/{name}'):
+            raise RuntimeError(f'model {name} {start_epoch - 1} does not exist')
+        arr.load_model(name, start_epoch - 1)
+    else:
+        if name not in os.listdir('models'):
+            os.mkdir(f'models/{name}')
+        arr.build(category, max_feature, input_len, dataset)
+
+    arr.train(name, start_epoch)
+
+
+if __name__ == '__main__':
+    category = 'base'
+    max_feature = '2k'
+    input_len = 'avg'
+    dataset = 'old'
+    start_epoch = 0
+
+    train(category, max_feature, input_len, dataset, start_epoch)
