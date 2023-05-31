@@ -55,19 +55,20 @@ class rater:
             print('train:')
             # self.training_history[agent] = self.agents[agent].fit(
             #     Xtrain, ytrain, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS, validation_data=(Xval, yval))
-            for x in range(4, NUM_EPOCHS):
+            for x in range(5, NUM_EPOCHS):
                 print(f'epoch {x}:')
                 history = self.agents[agent].fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
                 self.training_history[agent].append(history)
                 self.agents[agent].save(f'models/base-all-max-new/base-all-max-new {x}.keras')
                 with open(f'models/base-all-max-new/base-all-max-new {x}.json', 'w') as f:
                     json.dump(self.training_history[agent][-1].history, f)
+                exit()
 
             print('\ntest:')
             self.agents[agent].evaluate(Xtest, ytest, batch_size=BATCH_SIZE, verbose=VERBOSE)
 
     def load(self, name):
-        self.agents['LSTM'] = load_model(f'models/{name}/{name} 3.keras')
+        self.agents['LSTM'] = load_model(f'models/{name}/{name} 4.keras')
         # for name in models:
         #     self.agents[name] = load_model(f'models/{name}.keras')
         #     self.training_history[name] = json.load(f'training history/{name}.json')
