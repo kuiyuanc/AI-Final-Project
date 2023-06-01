@@ -4,6 +4,7 @@
 
 import os
 import csv
+import nltk
 from model import base, double_LSTM
 from pre_processor import pre_processor
 
@@ -17,6 +18,7 @@ class anime_review_rater:
         self.models = {}
 
     def load_reviews(self, dataset):
+        self.reviews = []
         with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
             for name, text, rating in reader:
@@ -26,6 +28,7 @@ class anime_review_rater:
                 self.reviews.append([name, text, rate])
 
     def load_animes(self):
+        self.animes = []
         with open(f'data/anime.csv', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
             for anime, genres, rating in reader:
@@ -58,22 +61,35 @@ class anime_review_rater:
     def train(self, name, start_epoch=0):
         names, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
-        self.models[name].batch(texts[:32], ratings[:32])
+        self.models[name].batch(texts, ratings)
 
         self.models[name].train(f'models/{name}/')
 
 
-def pre_process():
+def pre_process(dataset='new'):
     arr = anime_review_rater()
-    arr.load()
+    arr.load_reviews(dataset)
 
-    names, texts, ratings = zip(*arr.reviews)
+    _, texts, _ = zip(*arr.reviews)
     pp = pre_processor()
-    pp.load(texts, ratings)
-    with open('data/processed review new.md', 'w', encoding="utf-8") as md:
+    pp.load(texts)
+    with open(f'bins/processed review {dataset}.md', 'w', encoding="utf-8") as md:
         for i in range(len(pp.lemmatized_docs)):
             md.write(f'# review {i}:\n')
             md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
+
+
+def info(dataset='new'):
+    with open(f'bins/processed review {dataset}.md', encoding='utf-8') as md:
+        lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
+
+    bag_of_word = nltk.FreqDist([word for line in lines for word in line])
+
+    print(f'number of vocabulary of {dataset}: ', len(bag_of_word))
+
+    print(f'average input length of {dataset}: ', sum(len(line) for line in lines) // len(lines))
+
+    print(f'max input length of {dataset}: ', max(len(line) for line in lines))
 
 
 def train(category, max_feature, input_len, dataset, start_epoch=0):
@@ -96,11 +112,17 @@ def train(category, max_feature, input_len, dataset, start_epoch=0):
     arr.train(name, start_epoch)
 
 
-if __name__ == '__main__':
+def main():
+    info('new')
+
     category = 'base'
     max_feature = '2k'
     input_len = 'avg'
     dataset = 'old'
     start_epoch = 0
 
-    train(category, max_feature, input_len, dataset, start_epoch)
+    # train(category, max_feature, input_len, dataset, start_epoch)
+
+
+if __name__ == '__main__':
+    main()
