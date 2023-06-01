@@ -55,7 +55,7 @@ class rater:
             print('train:')
             # self.training_history[agent] = self.agents[agent].fit(
             #     Xtrain, ytrain, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS, validation_data=(Xval, yval))
-            for x in range(5, NUM_EPOCHS):
+            for x in range(6, NUM_EPOCHS):
                 print(f'epoch {x}:')
                 history = self.agents[agent].fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
                 self.training_history[agent].append(history)
@@ -68,7 +68,7 @@ class rater:
             self.agents[agent].evaluate(Xtest, ytest, batch_size=BATCH_SIZE, verbose=VERBOSE)
 
     def load(self, name):
-        self.agents['LSTM'] = load_model(f'models/{name}/{name} 4.keras')
+        self.agents['LSTM'] = load_model(f'models/{name}/{name} 5.keras')
         # for name in models:
         #     self.agents[name] = load_model(f'models/{name}.keras')
         #     self.training_history[name] = json.load(f'training history/{name}.json')
