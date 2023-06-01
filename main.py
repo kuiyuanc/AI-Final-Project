@@ -57,8 +57,8 @@ class anime_review_rater:
 
         self.models[name].build()
 
-    def train(self, name, start_epoch=0, end_epoch=0):
-        names, texts, ratings = zip(*self.reviews)
+    def train(self, name, start_epoch=0, end_epoch=10):
+        _, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
         self.models[name].batch(texts, ratings, True)
 
