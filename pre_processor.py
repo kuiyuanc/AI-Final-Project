@@ -1,3 +1,4 @@
+import csv
 import nltk
 import numpy as np
 from nltk import pos_tag
@@ -18,9 +19,13 @@ class pre_processor:
         self.__UNK = "__UNK"
         self.RANDOM_STATE = 42
 
-    def load(self, docs):
-        self.lemmatized_docs = [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS]
-                                for doc in docs]
+    def load(self, docs, path=None):
+        if path:
+            with open(path, encoding='utf-8') as f:
+                self.lemmatized_docs = [line.split() for line in f.readlines() if line[:8] != '# review']
+        else:
+            self.lemmatized_docs = [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS]
+                                    for doc in docs]
 
         self.bag_of_word = nltk.FreqDist([word for doc in self.lemmatized_docs for word in doc])
 
@@ -89,3 +94,43 @@ class pre_processor:
 
     def one_hot(self, word):
         return self.word_index[word if word in self.word_index else self.__UNK]
+
+
+def pre_process(dataset='new'):
+    reviews = []
+    with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        for name, text, rating in reader:
+            if name == 'Anime':
+                continue
+            rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
+            reviews.append([name, text, rate])
+
+    _, texts, _ = zip(*reviews)
+    pp = pre_processor()
+    pp.load(texts)
+    with open(f'bins/processed review {dataset}.md', 'w', encoding="utf-8") as md:
+        for i in range(len(pp.lemmatized_docs)):
+            md.write(f'# review {i}:\n')
+            md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
+
+
+def info(dataset='new'):
+    with open(f'bins/processed review {dataset}.md', encoding='utf-8') as md:
+        lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
+
+    y = np.zeros(len(lines))
+    pp = pre_processor()
+    lines_train, lines_valid, lines_test, _, _, _ = pp.split(lines, y, .8, .1)
+
+    print(f'number of vocabulary of {dataset} of train: ', len(nltk.FreqDist([word for line in lines_train for word in line])))
+    print(f'number of vocabulary of {dataset} of valid: ', len(nltk.FreqDist([word for line in lines_valid for word in line])))
+    print(f'number of vocabulary of {dataset} of test: ', len(nltk.FreqDist([word for line in lines_test for word in line])))
+
+    print(f'average input length of {dataset} of train: ', sum(len(line) for line in lines_train) // len(lines_train))
+    print(f'average input length of {dataset} of valid: ', sum(len(line) for line in lines_valid) // len(lines_valid))
+    print(f'average input length of {dataset} of test: ', sum(len(line) for line in lines_test) // len(lines_test))
+
+    print(f'max input length of {dataset} of train: ', max(len(line) for line in lines_train))
+    print(f'max input length of {dataset} of valid: ', max(len(line) for line in lines_valid))
+    print(f'max input length of {dataset} of test: ', max(len(line) for line in lines_test))

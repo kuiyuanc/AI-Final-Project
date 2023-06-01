@@ -9,12 +9,12 @@ from tensorflow.python.keras.layers.core import Dense
 
 
 # before spliting
-NUM_VOCAB_OLD = 20862
-NUM_VOCAB_NEW = 124423
-INPUT_LENGTH_AVG_OLD = 412
+NUM_VOCAB_OLD = 18551
+NUM_VOCAB_NEW = 108333
+INPUT_LENGTH_AVG_OLD = 410
 INPUT_LENGTH_AVG_NEW = 519
-INPUT_LENGTH_MAX_OLD = 3292
-INPUT_LENGTH_MAX_NEW = 8653
+INPUT_LENGTH_MAX_OLD = 2565
+INPUT_LENGTH_MAX_NEW = 7734
 
 
 class model:
@@ -34,7 +34,7 @@ class model:
     def __str__(self):
         return self.category + '-' + self.max_feature + '-' + self.input_len + '-' + self.dataset
 
-    def batch(self, docs, golden_ratings):
+    def batch(self, docs, golden_ratings, pre_done=None):
         raise NotImplementedError
 
     def single(self, doc):
@@ -43,22 +43,23 @@ class model:
     def build(self):
         raise NotImplementedError
 
-    def train(self, path):
+    def train(self, path, end_epoch):
         TRAIN_SIZE = 0.8
         TEST_SIZE = 0.1
         BATCH_SIZE = 32
-        NUM_EPOCHS = 10
         VERBOSE = 1
 
         Xtrain, Xval, Xtest, ytrain, yval, ytest = self.pre_processor.split(self.X, self.y,
                                                                             TRAIN_SIZE, TEST_SIZE)
 
-        for i in range(self.epoch + 1, NUM_EPOCHS):
+        for i in range(self.epoch + 1, end_epoch + 1):
+            print(f'epoch {i}:')
             history = self.model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
             self.training_history.append(history)
             self.epoch += 1
             self.save(path)
 
+        print('testing...')
         self.model.evaluate(Xtest, ytest, batch_size=BATCH_SIZE, verbose=VERBOSE)
 
     def load(self, path, epoch):
@@ -80,8 +81,9 @@ class base(model):
     def __init__(self, category, max_feature, input_len, dataset):
         super(base, self).__init__(category, max_feature, input_len, dataset)
 
-    def batch(self, docs, golden_ratings):
-        self.pre_processor.load(docs)
+    def batch(self, docs, golden_ratings, pre_done=None):
+        path = f'bins/processed review {self.dataset}.md' if pre_done else None
+        self.pre_processor.load(docs, path)
 
         if self.max_feature == '2k':
             MAX_FEATURE = 2000

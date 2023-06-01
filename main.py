@@ -4,9 +4,8 @@
 
 import os
 import csv
-import nltk
 from model import base, double_LSTM
-from pre_processor import pre_processor
+# from pre_processor import info, pre_process
 
 
 class anime_review_rater:
@@ -58,46 +57,22 @@ class anime_review_rater:
 
         self.models[name].build()
 
-    def train(self, name, start_epoch=0):
+    def train(self, name, start_epoch=0, end_epoch=0):
         names, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
-        self.models[name].batch(texts, ratings)
+        self.models[name].batch(texts, ratings, True)
 
-        self.models[name].train(f'models/{name}/')
-
-
-def pre_process(dataset='new'):
-    arr = anime_review_rater()
-    arr.load_reviews(dataset)
-
-    _, texts, _ = zip(*arr.reviews)
-    pp = pre_processor()
-    pp.load(texts)
-    with open(f'bins/processed review {dataset}.md', 'w', encoding="utf-8") as md:
-        for i in range(len(pp.lemmatized_docs)):
-            md.write(f'# review {i}:\n')
-            md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
+        self.models[name].train(f'models/{name}/', end_epoch)
 
 
-def info(dataset='new'):
-    with open(f'bins/processed review {dataset}.md', encoding='utf-8') as md:
-        lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
-
-    bag_of_word = nltk.FreqDist([word for line in lines for word in line])
-
-    print(f'number of vocabulary of {dataset}: ', len(bag_of_word))
-
-    print(f'average input length of {dataset}: ', sum(len(line) for line in lines) // len(lines))
-
-    print(f'max input length of {dataset}: ', max(len(line) for line in lines))
-
-
-def train(category, max_feature, input_len, dataset, start_epoch=0):
+def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10):
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
 
+    print('review loading...')
     arr = anime_review_rater()
     arr.load_reviews(dataset)
 
+    print('model preparing...')
     if start_epoch:
         if name not in os.listdir('models'):
             raise RuntimeError(f'model {name} does not exist')
@@ -109,19 +84,19 @@ def train(category, max_feature, input_len, dataset, start_epoch=0):
             os.mkdir(f'models/{name}')
         arr.build(category, max_feature, input_len, dataset)
 
-    arr.train(name, start_epoch)
+    print('training...')
+    arr.train(name, start_epoch, end_epoch)
 
 
 def main():
-    info('new')
-
     category = 'base'
     max_feature = '2k'
     input_len = 'avg'
     dataset = 'old'
     start_epoch = 0
+    end_epoch = 10
 
-    # train(category, max_feature, input_len, dataset, start_epoch)
+    train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
 
 
 if __name__ == '__main__':
