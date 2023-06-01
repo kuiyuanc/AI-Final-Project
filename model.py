@@ -8,13 +8,13 @@ from tensorflow.python.keras.layers.recurrent import LSTM
 from tensorflow.python.keras.layers.core import Dense
 
 
-# TODO
-NUM_VOCAB_OLD = 2000
-NUM_VOCAB_NEW = 2000
-INPUT_LENGTH_AVG_OLD = 1000
-INPUT_LENGTH_AVG_NEW = 1000
-INPUT_LENGTH_MAX_OLD = 1000
-INPUT_LENGTH_MAX_NEW = 1000
+# before spliting
+NUM_VOCAB_OLD = 20862
+NUM_VOCAB_NEW = 124423
+INPUT_LENGTH_AVG_OLD = 412
+INPUT_LENGTH_AVG_NEW = 519
+INPUT_LENGTH_MAX_OLD = 3292
+INPUT_LENGTH_MAX_NEW = 8653
 
 
 class model:
