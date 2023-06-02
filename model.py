@@ -86,7 +86,7 @@ class base(model):
         TEST_SIZE = 0.1
         MAX_FEATURE = self.get_max_feature()
 
-        path = f'bins/processed review {self.dataset}.md' if pre_done else None
+        path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
 
         lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
 
@@ -110,7 +110,6 @@ class base(model):
         HIDDEN_LAYER_SIZE = 64
         NUM_VOCAB = self.get_max_feature() + 2
 
-        self.model = Sequential()
         self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.get_input_len()))
         self.model.add(LSTM(HIDDEN_LAYER_SIZE, dropout=0.2, recurrent_dropout=0.2))
         self.model.add(Dense(1, activation='sigmoid'))
@@ -135,5 +134,36 @@ class double_LSTM(model):
     def __init__(self, category, max_feature, input_len, dataset):
         super(double_LSTM, self).__init__(category, max_feature, input_len, dataset)
 
-    def build(self, docs, golden_ratings):
-        raise NotImplementedError
+    def batch(self, docs, golden_ratings, pre_done=None):
+        TRAIN_SIZE = 0.8
+        TEST_SIZE = 0.1
+        MAX_FEATURE = self.get_max_feature()
+
+        path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
+
+        lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
+
+        lemmatized_docs_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_docs, golden_ratings,
+                                                                        TRAIN_SIZE, TEST_SIZE)
+
+        word_index = self.pre_processor.make_index(lemmatized_docs_train)
+        one_hot_docs = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in doc]
+                        for doc in lemmatized_docs]
+
+        self.X = sequence.pad_sequences(np.array(one_hot_docs, dtype=object), maxlen=self.get_input_len())
+        self.y = np.array(golden_ratings)
+
+    def single(self, doc):
+        one_hot_doc = [self.pre_processor.one_hot(word, self.get_max_feature())
+                       for word in self.pre_processor.lemmatize(doc)]
+        return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.get_input_len())
+
+    def build(self):
+        EMBEDDING_SIZE = 128
+        HIDDEN_LAYER_SIZE = 64
+        NUM_VOCAB = self.get_max_feature() + 2
+
+        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.get_input_len()))
+        self.model.add(LSTM(HIDDEN_LAYER_SIZE, dropout=0.2, recurrent_dropout=0.2))
+        self.model.add(Dense(1, activation='sigmoid'))
+        self.model.compile(loss="mean_squared_error", optimizer="adam")
