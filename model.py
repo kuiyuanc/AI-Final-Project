@@ -82,54 +82,51 @@ class base(model):
         super(base, self).__init__(category, max_feature, input_len, dataset)
 
     def batch(self, docs, golden_ratings, pre_done=None):
+        TRAIN_SIZE = 0.8
+        TEST_SIZE = 0.1
+        MAX_FEATURE = self.get_max_feature()
+
         path = f'bins/processed review {self.dataset}.md' if pre_done else None
-        self.pre_processor.load(docs, path)
 
-        if self.max_feature == '2k':
-            MAX_FEATURE = 2000
-        elif self.dataset == 'old':
-            MAX_FEATURE = NUM_VOCAB_OLD
-        else:
-            MAX_FEATURE = NUM_VOCAB_NEW
+        lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
 
-        if self.input_len == 'avg':
-            INPUT_LENGTH = INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
-        else:
-            INPUT_LENGTH = INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
+        lemmatized_docs_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_docs, golden_ratings,
+                                                                        TRAIN_SIZE, TEST_SIZE)
 
-        one_hot_docs = [[word if word < MAX_FEATURE else 1 for word in doc]
-                        for doc in self.pre_processor.one_hot_docs]
+        word_index = self.pre_processor.make_index(lemmatized_docs_train)
+        one_hot_docs = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in doc]
+                        for doc in lemmatized_docs]
 
-        X = np.array(one_hot_docs, dtype=object)
-        self.X = sequence.pad_sequences(X, maxlen=INPUT_LENGTH)
+        self.X = sequence.pad_sequences(np.array(one_hot_docs, dtype=object), maxlen=self.get_input_len())
         self.y = np.array(golden_ratings)
 
     def single(self, doc):
-        one_hot_doc = [self.pre_processor.one_hot(word) if word < self.max_feature
-                       else self.pre_processor.UNK for word in self.pre_processor.lemmatize(doc)]
-        return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.input_len)
+        one_hot_doc = [self.pre_processor.one_hot(word, self.get_max_feature())
+                       for word in self.pre_processor.lemmatize(doc)]
+        return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.get_input_len())
 
     def build(self):
         EMBEDDING_SIZE = 128
         HIDDEN_LAYER_SIZE = 64
-
-        if self.max_feature == '2k':
-            NUM_VOCAB = 2000
-        elif self.dataset == 'old':
-            NUM_VOCAB = NUM_VOCAB_OLD
-        else:
-            NUM_VOCAB = NUM_VOCAB_NEW
-
-        if self.input_len == 'avg':
-            INPUT_LENGTH = INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
-        else:
-            INPUT_LENGTH = INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
+        NUM_VOCAB = self.get_max_feature() + 2
 
         self.model = Sequential()
-        self.model.add(Embedding(NUM_VOCAB + 2, EMBEDDING_SIZE, input_length=INPUT_LENGTH))
+        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.get_input_len()))
         self.model.add(LSTM(HIDDEN_LAYER_SIZE, dropout=0.2, recurrent_dropout=0.2))
         self.model.add(Dense(1, activation='sigmoid'))
         self.model.compile(loss="mean_squared_error", optimizer="adam")
+
+    def get_input_len(self):
+        if self.input_len == 'avg':
+            return INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
+        else:
+            return INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
+
+    def get_max_feature(self):
+        if self.max_feature == '2k':
+            return 2000
+        else:
+            return NUM_VOCAB_OLD if self.dataset == 'old' else NUM_VOCAB_NEW
 
 
 class double_LSTM(model):

@@ -19,22 +19,18 @@ class pre_processor:
         self.__UNK = "__UNK"
         self.RANDOM_STATE = 42
 
-    def load(self, docs, path=None):
+    def docs_lemmatize(self, docs, path=None):
         if path:
             with open(path, encoding='utf-8') as f:
-                self.lemmatized_docs = [line.split() for line in f.readlines() if line[:8] != '# review']
+                return [line.split() for line in f.readlines() if line[:8] != '# review']
         else:
-            self.lemmatized_docs = [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS]
-                                    for doc in docs]
+            return [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS] for doc in docs]
 
-        self.bag_of_word = nltk.FreqDist([word for doc in self.lemmatized_docs for word in doc])
-
-        self.word_index = {x[0]: i + 2 for i, x in enumerate(self.bag_of_word.most_common())}
+    def make_index(self, docs):
+        bag_of_word = nltk.FreqDist([word for doc in docs for word in doc])
+        self.word_index = {x[0]: i + 2 for i, x in enumerate(bag_of_word.most_common())}
         self.word_index |= {self.__PAD: 0, self.__UNK: 1}
-
-        self.one_hot_docs = [[self.one_hot(word) for word in doc] for doc in self.lemmatized_docs]
-
-        # self.text_collection = TextCollection(self.lemmatized_docs)
+        return self.word_index
 
     def split(self, X, y, train_size, test_size, random_state=None):
         random_state = random_state if random_state else self.RANDOM_STATE
@@ -92,11 +88,15 @@ class pre_processor:
                 words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
         return words
 
-    def one_hot(self, word):
-        return self.word_index[word if word in self.word_index else self.__UNK]
+    def one_hot(self, word, max_index, word_index=None):
+        word_index = word_index if word_index else self.word_index
+
+        if word in word_index:
+            return word_index[word] if word_index[word] < max_index else word_index[self.__UNK]
+        return word_index[self.__UNK]
 
 
-def pre_process(dataset='new'):
+def pre_process_base(dataset='new'):
     reviews = []
     with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
