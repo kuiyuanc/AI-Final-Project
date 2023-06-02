@@ -64,6 +64,13 @@ class anime_review_rater:
 
         self.models[name].train(f'models/{name}/', end_epoch)
 
+    def rate(self, name, review):
+        _, texts, ratings = zip(*self.reviews)
+        ratings = [rating / 10 for rating in ratings]
+        self.models[name].batch(texts, ratings, True)
+
+        return self.models[name].rate(review)
+
 
 def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10):
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
@@ -88,15 +95,30 @@ def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10
     arr.train(name, start_epoch, end_epoch)
 
 
+def rate(category, max_feature, input_len, dataset, epoch):
+    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+
+    arr = anime_review_rater()
+    arr.load_reviews(dataset)
+    arr.load_model(name, epoch)
+
+    print('rating...')
+    score = arr.rate(name, 'Are you stupid?')
+    print(f'score of \'Are you stupid?\': {score}')
+
+
 def main():
     category = 'base'
-    max_feature = '2k'
-    input_len = 'avg'
-    dataset = 'old'
-    start_epoch = 0
+    max_feature = 'all'
+    input_len = 'max'
+    dataset = 'new'
+    start_epoch = 7
     end_epoch = 10
+    epoch = 9
 
     train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
+
+    rate(category, max_feature, input_len, dataset, epoch)
 
 
 if __name__ == '__main__':
