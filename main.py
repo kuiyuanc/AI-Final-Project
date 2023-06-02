@@ -107,13 +107,37 @@ def rate(category, max_feature, input_len, dataset, epoch):
     print(f'score of \'Are you stupid?\': {score}')
 
 
+def debug(category, max_feature, input_len, dataset):
+    pass
+
+
 def main():
+    '''
+        category:
+            'base': base line
+            'double': main approach
+        max_feature:
+            'all': all vocabulary
+            '2k': most common 2000
+        input_len:
+            'max': max review length
+            'avg': average review length
+        start_epoch:
+            int: training start from which epoch
+        end_epoch:
+            int: training ends at which epoch
+        epoch:
+            int: use which epoch to run rate()
+
+        Current assignment of argument is safe for you to try.
+        It should run without error.
+    '''
     category = 'base'
-    max_feature = 'all'
-    input_len = 'max'
-    dataset = 'new'
-    start_epoch = 7
-    end_epoch = 10
+    max_feature = '2k'
+    input_len = 'avg'
+    dataset = 'old'
+    start_epoch = 0
+    end_epoch = 9
     epoch = 9
 
     train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
