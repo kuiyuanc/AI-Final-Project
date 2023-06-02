@@ -6,21 +6,37 @@ from tensorflow.python.keras.models import Sequential, load_model
 from tensorflow.python.keras.layers.embeddings import Embedding
 from tensorflow.python.keras.layers.recurrent import LSTM
 from tensorflow.python.keras.layers.core import Dense
+from tensorflow.python.keras.layers import Reshape
+from tensorflow.keras.layers import ConvLSTM1D
 
 
-# before spliting
 NUM_VOCAB_OLD = 18551
 NUM_VOCAB_NEW = 108333
+
 INPUT_LENGTH_AVG_OLD = 410
 INPUT_LENGTH_AVG_NEW = 519
 INPUT_LENGTH_MAX_OLD = 2565
 INPUT_LENGTH_MAX_NEW = 7734
+
+SENTENCE_LENGTH_AVG_OLD = 18
+SENTENCE_LENGTH_AVG_NEW = 17
+SENTENCE_LENGTH_MAX_OLD = 298
+SENTENCE_LENGTH_MAX_NEW = 464
+REVIEW_LENGTH_AVG_OLD = 40
+REVIEW_LENGTH_AVG_NEW = 25
+REVIEW_LENGTH_MAX_OLD = 236
+REVIEW_LENGTH_MAX_NEW = 390
 
 
 class model:
     """docstring for model"""
 
     def __init__(self, category, max_feature, input_len, dataset):
+        self.TRAIN_SIZE = 0.8
+        self.TEST_SIZE = 0.1
+        self.BATCH_SIZE = 32
+        self.VERBOSE = 1
+
         self.category = category
         self.max_feature = max_feature
         self.input_len = input_len
@@ -44,23 +60,18 @@ class model:
         raise NotImplementedError
 
     def train(self, path, end_epoch):
-        TRAIN_SIZE = 0.8
-        TEST_SIZE = 0.1
-        BATCH_SIZE = 32
-        VERBOSE = 1
-
         Xtrain, Xval, Xtest, ytrain, yval, ytest = self.pre_processor.split(self.X, self.y,
-                                                                            TRAIN_SIZE, TEST_SIZE)
+                                                                            self.TRAIN_SIZE, self.TEST_SIZE)
 
         for i in range(self.epoch + 1, end_epoch + 1):
             print(f'epoch {i}:')
-            history = self.model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, validation_data=(Xval, yval))
+            history = self.model.fit(Xtrain, ytrain, batch_size=self.BATCH_SIZE, validation_data=(Xval, yval))
             self.training_history.append(history)
             self.epoch += 1
             self.save(path)
 
         print('testing...')
-        self.model.evaluate(Xtest, ytest, batch_size=BATCH_SIZE, verbose=VERBOSE)
+        self.model.evaluate(Xtest, ytest, batch_size=self.BATCH_SIZE, verbose=self.VERBOSE)
 
     def load(self, path, epoch):
         self.epoch = epoch
@@ -74,6 +85,12 @@ class model:
     def rate(self, doc):
         return self.model.predict(self.single(doc))[0][0] * 10
 
+    def get_max_feature(self):
+        if self.max_feature == '2k':
+            return 2000
+        else:
+            return NUM_VOCAB_OLD if self.dataset == 'old' else NUM_VOCAB_NEW
+
 
 class base(model):
     """docstring for base"""
@@ -82,8 +99,6 @@ class base(model):
         super(base, self).__init__(category, max_feature, input_len, dataset)
 
     def batch(self, docs, golden_ratings, pre_done=None):
-        TRAIN_SIZE = 0.8
-        TEST_SIZE = 0.1
         MAX_FEATURE = self.get_max_feature()
 
         path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
@@ -91,7 +106,7 @@ class base(model):
         lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
 
         lemmatized_docs_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_docs, golden_ratings,
-                                                                        TRAIN_SIZE, TEST_SIZE)
+                                                                        self.TRAIN_SIZE, self.TEST_SIZE)
 
         word_index = self.pre_processor.make_index(lemmatized_docs_train)
         one_hot_docs = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in doc]
@@ -121,12 +136,6 @@ class base(model):
         else:
             return INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
 
-    def get_max_feature(self):
-        if self.max_feature == '2k':
-            return 2000
-        else:
-            return NUM_VOCAB_OLD if self.dataset == 'old' else NUM_VOCAB_NEW
-
 
 class double_LSTM(model):
     """docstring for double_LSTM"""
@@ -134,23 +143,47 @@ class double_LSTM(model):
     def __init__(self, category, max_feature, input_len, dataset):
         super(double_LSTM, self).__init__(category, max_feature, input_len, dataset)
 
-    def batch(self, docs, golden_ratings, pre_done=None):
-        TRAIN_SIZE = 0.8
-        TEST_SIZE = 0.1
+    def batch(self, docs, golden_ratings, pre_done=True):
         MAX_FEATURE = self.get_max_feature()
 
+        # load processed data
         path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
 
-        lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
+        with open(path, encoding='utf-8') as md:
+            lines = md.readlines()
 
-        lemmatized_docs_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_docs, golden_ratings,
-                                                                        TRAIN_SIZE, TEST_SIZE)
+        # data into 3D list (num_doc, num_sentence, num_word)
+        docs = []
+        doc = []
+        for i in range(1, len(lines)):
+            if lines[i][:8] == '# review':
+                docs.append([line.split() for line in doc])
+                doc = []
+            else:
+                doc.append(lines[i])
+        docs.append([line.split() for line in doc])
+
+        # one-hot encoding of word
+        docs_train, _, _, _, _, _ = self.pre_processor.split(docs, golden_ratings, self.TRAIN_SIZE, self.TEST_SIZE)
+
+        lemmatized_docs_train = [[word for sentence in doc for word in sentence] for doc in docs_train]
 
         word_index = self.pre_processor.make_index(lemmatized_docs_train)
-        one_hot_docs = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in doc]
-                        for doc in lemmatized_docs]
+        one_hot_docs = [[[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in sentence]
+                         for sentence in doc] for doc in docs]
 
-        self.X = sequence.pad_sequences(np.array(one_hot_docs, dtype=object), maxlen=self.get_input_len())
+        # sentence padding
+        for i in range(len(one_hot_docs)):
+            num_pad = self.get_review_len() - len(one_hot_docs[i])
+            if num_pad < 0:
+                one_hot_docs[i] = one_hot_docs[i][-num_pad:]
+            else:
+                one_hot_docs[i] += [[] for _ in range(num_pad)]
+        # word padding
+        one_hot_docs = [sequence.pad_sequences(np.array(doc, dtype=object), maxlen=self.get_sentence_len())
+                        for doc in one_hot_docs]
+
+        self.X = np.array([[word for sentence in doc for wod in sentence] for doc in one_hot_docs])
         self.y = np.array(golden_ratings)
 
     def single(self, doc):
@@ -162,8 +195,24 @@ class double_LSTM(model):
         EMBEDDING_SIZE = 128
         HIDDEN_LAYER_SIZE = 64
         NUM_VOCAB = self.get_max_feature() + 2
+        INPUT_LENGTH = self.get_review_len() * self.get_sentence_len()
+        SHAPE = (self.get_review_len(), self.get_sentence_len(), EMBEDDING_SIZE)
 
-        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.get_input_len()))
-        self.model.add(LSTM(HIDDEN_LAYER_SIZE, dropout=0.2, recurrent_dropout=0.2))
+        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=INPUT_LENGTH))
+        # self.model.add(Reshape(SHAPE))
+        # self.model.add(ConvLSTM1D(1, self.get_sentence_len(), strides=self.get_sentence_len(),
+        #                           dropout=0.2, recurrent_dropout=0.2))
         self.model.add(Dense(1, activation='sigmoid'))
         self.model.compile(loss="mean_squared_error", optimizer="adam")
+
+    def get_sentence_len(self):
+        if self.input_len == 'avg':
+            return SENTENCE_LENGTH_AVG_OLD if self.dataset == 'old' else SENTENCE_LENGTH_AVG_NEW
+        else:
+            return SENTENCE_LENGTH_MAX_OLD if self.dataset == 'old' else SENTENCE_LENGTH_MAX_NEW
+
+    def get_review_len(self):
+        if self.input_len == 'avg':
+            return REVIEW_LENGTH_AVG_OLd if self.dataset == 'old' else REVIEW_LENGTH_AVG_NEW
+        else:
+            return REVIEW_LENGTH_MAX_OLD if self.dataset == 'old' else REVIEW_LENGTH_MAX_NEW
