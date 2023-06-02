@@ -1,6 +1,9 @@
 import csv
 import nltk
 import numpy as np
+
+# nltk.download('all')
+
 from nltk import pos_tag
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -80,13 +83,15 @@ class pre_processor:
         else:
             return None
 
-    def lemmatize(self, text):
+    def sentence_lemmatize(self, sentence):
         words = []
-        for sentence in sent_tokenize(text):
-            for w, pos in pos_tag(word_tokenize(sentence.lower())):
-                wordnet_pos = self.get_wordnet_pos(pos) or wordnet.NOUN
-                words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
+        for w, pos in pos_tag(word_tokenize(sentence.lower())):
+            wordnet_pos = self.get_wordnet_pos(pos) or wordnet.NOUN
+            words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
         return words
+
+    def lemmatize(self, text):
+        return [word for sentence in sent_tokenize(text) for word in self.sentence_lemmatize(sentence)]
 
     def one_hot(self, word, max_index, word_index=None):
         word_index = word_index if word_index else self.word_index
@@ -109,13 +114,32 @@ def pre_process_base(dataset='new'):
     _, texts, _ = zip(*reviews)
     pp = pre_processor()
     pp.load(texts)
-    with open(f'bins/processed review {dataset}.md', 'w', encoding="utf-8") as md:
+    with open(f'bins/processed review {dataset} base.md', 'w', encoding="utf-8") as md:
         for i in range(len(pp.lemmatized_docs)):
             md.write(f'# review {i}:\n')
             md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
 
 
-def info(dataset='new'):
+def pre_process_double_LSTM(dataset='new'):
+    reviews = []
+    with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        for name, text, rating in reader:
+            if name == 'Anime':
+                continue
+            rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
+            reviews.append([name, text, rate])
+
+    _, texts, _ = zip(*reviews)
+    texts = [[sentence + '\n' for sentence in sent_tokenize(text)] for text in texts]
+
+    with open(f'bins/processed review {dataset} double LSTM.md', 'w', encoding="utf-8") as md:
+        for i in range(len(texts)):
+            md.write(f'# review {i}:\n')
+            md.writelines(texts[i])
+
+
+def info_base(dataset='new'):
     with open(f'bins/processed review {dataset}.md', encoding='utf-8') as md:
         lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
 
@@ -134,3 +158,44 @@ def info(dataset='new'):
     print(f'max input length of {dataset} of train: ', max(len(line) for line in lines_train))
     print(f'max input length of {dataset} of valid: ', max(len(line) for line in lines_valid))
     print(f'max input length of {dataset} of test: ', max(len(line) for line in lines_test))
+
+
+def info_double_LSTM(dataset='new'):
+    with open(f'bins/processed review {dataset} double LSTM.md', encoding='utf-8') as md:
+        lines = md.readlines()
+
+    texts = []
+    text = []
+    for i in range(len(lines)):
+        if lines[i][:8] == '# review':
+            texts.append([line.split() for line in text])
+            text = []
+        else:
+            text.append(lines[i])
+
+    y = np.zeros(len(texts))
+    pp = pre_processor()
+    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
+
+    print(f'average sentence length of {dataset} of train: ', sum(len(line) for text in texts_train for line in text) // sum(len(text) for text in texts_train))
+    print(f'average sentence length of {dataset} of valid: ', sum(len(line) for text in texts_valid for line in text) // sum(len(text) for text in texts_valid))
+    print(f'average sentence length of {dataset} of test: ', sum(len(line) for text in texts_test for line in text) // sum(len(text) for text in texts_test))
+
+    print(f'average review length of {dataset} of train: ', sum(len(text) for text in texts_train) // len(texts_train))
+    print(f'average review length of {dataset} of valid: ', sum(len(text) for text in texts_valid) // len(texts_valid))
+    print(f'average review length of {dataset} of test: ', sum(len(text) for text in texts_test) // len(texts_test))
+
+    print(f'max sentence length of {dataset} of train: ', max(len(line) for text in texts_train for line in text))
+    print(f'max sentence length of {dataset} of valid: ', max(len(line) for text in texts_valid for line in text))
+    print(f'max sentence length of {dataset} of test: ', max(len(line) for text in texts_test for line in text))
+
+
+def main():
+    dataset = 'old'
+
+    # pre_process_double_LSTM(dataset)
+    info_double_LSTM(dataset)
+
+
+if __name__ == '__main__':
+    main()
