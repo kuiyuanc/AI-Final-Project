@@ -133,14 +133,14 @@ def pre_process_double_LSTM(dataset='new'):
     _, texts, _ = zip(*reviews)
     texts = [[sentence + '\n' for sentence in sent_tokenize(text)] for text in texts]
 
-    with open(f'bins/processed review {dataset} double LSTM.md', 'w', encoding="utf-8") as md:
+    with open(f'bins/processed review {dataset} double_LSTM.md', 'w', encoding="utf-8") as md:
         for i in range(len(texts)):
             md.write(f'# review {i}:\n')
             md.writelines(texts[i])
 
 
 def info_base(dataset='new'):
-    with open(f'bins/processed review {dataset}.md', encoding='utf-8') as md:
+    with open(f'bins/processed review {dataset} base.md', encoding='utf-8') as md:
         lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
 
     y = np.zeros(len(lines))
@@ -161,12 +161,12 @@ def info_base(dataset='new'):
 
 
 def info_double_LSTM(dataset='new'):
-    with open(f'bins/processed review {dataset} double LSTM.md', encoding='utf-8') as md:
+    with open(f'bins/processed review {dataset} double_LSTM.md', encoding='utf-8') as md:
         lines = md.readlines()
 
     texts = []
     text = []
-    for i in range(len(lines)):
+    for i in range(1, len(lines)):
         if lines[i][:8] == '# review':
             texts.append([line.split() for line in text])
             text = []
@@ -189,9 +189,13 @@ def info_double_LSTM(dataset='new'):
     print(f'max sentence length of {dataset} of valid: ', max(len(line) for text in texts_valid for line in text))
     print(f'max sentence length of {dataset} of test: ', max(len(line) for text in texts_test for line in text))
 
+    print(f'max review length of {dataset} of train: ', max(len(text) for text in texts_train))
+    print(f'max review length of {dataset} of valid: ', max(len(text) for text in texts_valid))
+    print(f'max review length of {dataset} of test: ', max(len(text) for text in texts_test))
+
 
 def main():
-    dataset = 'old'
+    dataset = 'new'
 
     # pre_process_double_LSTM(dataset)
     info_double_LSTM(dataset)
