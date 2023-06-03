@@ -5,7 +5,6 @@
 import os
 import csv
 from model import base, double_LSTM
-# from pre_processor import info, pre_process
 
 
 class anime_review_rater:
@@ -57,19 +56,25 @@ class anime_review_rater:
 
         self.models[name].build()
 
-    def train(self, name, start_epoch=0, end_epoch=10):
-        _, texts, ratings = zip(*self.reviews)
-        ratings = [rating / 10 for rating in ratings]
-        self.models[name].batch(texts, ratings, True)
-
+    def train(self, name, end_epoch=10):
+        self.batch(name)
         self.models[name].train(f'models/{name}/', end_epoch)
 
+    def test(self, name):
+        self.batch(name)
+        self.models[name].test(f'models/{name}/')
+
     def rate(self, name, review):
+        self.batch(name)
+        return self.models[name].rate(review)
+
+    def batch(self, name):
         _, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
         self.models[name].batch(texts, ratings, True)
 
-        return self.models[name].rate(review)
+    def info(self, name):
+        self.models[name].info()
 
 
 def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10):
@@ -83,7 +88,7 @@ def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10
     if start_epoch:
         if name not in os.listdir('models'):
             raise RuntimeError(f'model {name} does not exist')
-        elif name + ' ' + str(start_epoch - 1) + '.keras' not in os.listdir(f'models/{name}'):
+        elif name + f' {start_epoch - 1}.keras' not in os.listdir(f'models/{name}'):
             raise RuntimeError(f'model {name} {start_epoch - 1} does not exist')
         arr.load_model(name, start_epoch - 1)
     else:
@@ -92,23 +97,22 @@ def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10
         arr.build(category, max_feature, input_len, dataset)
 
     print('training...')
-    arr.train(name, start_epoch, end_epoch)
+    arr.train(name, end_epoch)
 
 
-def rate(category, max_feature, input_len, dataset, epoch):
+def load_arr(category, max_feature, input_len, dataset, epoch):
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+
+    if name not in os.listdir('models'):
+        raise RuntimeError(f'model {name} does not exist')
+    elif name + f' {epoch}.keras' not in os.listdir(f'models/{name}'):
+        raise RuntimeError(f'model {name} {epoch} does not exist')
 
     arr = anime_review_rater()
     arr.load_reviews(dataset)
     arr.load_model(name, epoch)
 
-    print('rating...')
-    score = arr.rate(name, 'Are you stupid?')
-    print(f'score of \'Are you stupid?\': {score}')
-
-
-def debug(category, max_feature, input_len, dataset):
-    pass
+    return arr
 
 
 def main():
@@ -141,8 +145,22 @@ def main():
     epoch = 9
 
     train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
+    print('\n')
 
-    rate(category, max_feature, input_len, dataset, epoch)
+    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+    arr = load_arr(category, max_feature, input_len, dataset, epoch)
+
+    print('testing...')
+    arr.test(name)
+    print('\n')
+
+    arr.info(name)
+    print('\n')
+
+    # print('rating...')
+    # doc = 'Are you stupid?'
+    # score = arr.rate(name, doc)
+    # print(f'score of "{doc}": {score}')
 
 
 if __name__ == '__main__':
