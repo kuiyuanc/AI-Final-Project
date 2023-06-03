@@ -179,21 +179,34 @@ def info_double_LSTM(dataset='new'):
     pp = pre_processor()
     texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
 
-    print(f'average sentence length of {dataset} of train: ', sum(len(line) for text in texts_train for line in text) // sum(len(text) for text in texts_train))
-    print(f'average sentence length of {dataset} of valid: ', sum(len(line) for text in texts_valid for line in text) // sum(len(text) for text in texts_valid))
-    print(f'average sentence length of {dataset} of test: ', sum(len(line) for text in texts_test for line in text) // sum(len(text) for text in texts_test))
+    texts = {'train': texts_train, 'valid': texts_valid, 'test': texts_test}
 
-    print(f'average review length of {dataset} of train: ', sum(len(text) for text in texts_train) // len(texts_train))
-    print(f'average review length of {dataset} of valid: ', sum(len(text) for text in texts_valid) // len(texts_valid))
-    print(f'average review length of {dataset} of test: ', sum(len(text) for text in texts_test) // len(texts_test))
+    import math
+    import statistics
 
-    print(f'max sentence length of {dataset} of train: ', max(len(line) for text in texts_train for line in text))
-    print(f'max sentence length of {dataset} of valid: ', max(len(line) for text in texts_valid for line in text))
-    print(f'max sentence length of {dataset} of test: ', max(len(line) for text in texts_test for line in text))
+    for set_name, texts in texts.items():
+        sentence_lengths = [len(line) for text in texts for line in text]
+        num_sentence = len(sentence_lengths)
 
-    print(f'max review length of {dataset} of train: ', max(len(text) for text in texts_train))
-    print(f'max review length of {dataset} of valid: ', max(len(text) for text in texts_valid))
-    print(f'max review length of {dataset} of test: ', max(len(text) for text in texts_test))
+        review_lengths = [len(text) for text in texts]
+        num_review = len(texts)
+
+        avg_sentence = statistics.mean(sentence_lengths)
+        avg_review = statistics.mean(review_lengths)
+        stderr_sentence = math.sqrt(statistics.variance(sentence_lengths))
+        stderr_review = math.sqrt(statistics.variance(review_lengths))
+
+        print(f'average sentence length of {dataset} of {set_name}: ', avg_sentence)
+        print(f'standard error of sentence length of {dataset} of {set_name}: ', stderr_sentence)
+        print('\n')
+
+        print(f'average review length of {dataset} of {set_name}: ', avg_review)
+        print(f'standard error of review length of {dataset} of {set_name}: ', stderr_review)
+        print('\n')
+
+        print(f'max sentence length of {dataset} of {set_name}: ', max(sentence_lengths))
+        print(f'max review length of {dataset} of {set_name}: ', max(review_lengths))
+        print('\n\n')
 
 
 def main():
