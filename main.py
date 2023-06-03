@@ -115,7 +115,7 @@ def main():
     '''
         category:
             'base': base line
-            'double': main approach
+            'double_LSTM': main approach
         max_feature:
             'all': all vocabulary
             '2k': most common 2000
@@ -134,7 +134,7 @@ def main():
     '''
     category = 'double_LSTM'
     max_feature = '2k'
-    input_len = 'avg'
+    input_len = 'max'
     dataset = 'new'
     start_epoch = 0
     end_epoch = 0
