@@ -183,10 +183,7 @@ class double_LSTM(model):
         # sentence padding
         for i in range(len(one_hot_docs)):
             num_pad = self.get_review_len() - len(one_hot_docs[i])
-            if num_pad < 0:
-                one_hot_docs[i] = one_hot_docs[i][-num_pad:]
-            else:
-                one_hot_docs[i] += [[] for _ in range(num_pad)]
+            one_hot_docs[i] = one_hot_docs[i][-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_docs[i]
         # word padding
         one_hot_docs = [sequence.pad_sequences(np.array(doc, dtype=object), maxlen=self.get_sentence_len())
                         for doc in one_hot_docs]
@@ -195,9 +192,14 @@ class double_LSTM(model):
         self.y = np.array(golden_ratings)
 
     def single(self, doc):
-        one_hot_doc = [self.pre_processor.one_hot(word, self.get_max_feature())
-                       for word in self.pre_processor.lemmatize(doc)]
-        return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.get_input_len())
+        one_hot_doc = [[self.pre_processor.one_hot(word, self.get_max_feature())
+                        for word in self.pre_processor.sentence_lemmatize(sentence)]
+                       for sentence in self.pre_processor.sent_tokenize(doc)]
+        num_pad = self.get_review_len() - len(one_hot_doc)
+        one_hot_doc = one_hot_doc[-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_doc
+        one_hot_doc = sequence.pad_sequences(np.array(one_hot_doc, dtype=object), maxlen=self.get_sentence_len())
+
+        return np.array([[word for sentence in one_hot_doc for word in sentence]])
 
     def build(self):
         EMBEDDING_SIZE = 128
@@ -221,7 +223,7 @@ class double_LSTM(model):
         docs = tf.reshape(sentences, shape=(-1, self.get_review_len(), SENTENCE_FEATURE))
         ratings = doc_model(docs)
 
-        self.model = Model(embedding_model.input, ratings)
+        self.model = Model(embedding_model.input, ratings, name=str(self))
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
     def get_sentence_len(self):
