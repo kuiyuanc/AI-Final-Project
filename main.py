@@ -132,7 +132,7 @@ def main():
         Current assignment of argument is safe for you to try.
         It should run without error.
     '''
-    category = 'base'
+    category = 'double_LSTM'
     max_feature = '2k'
     input_len = 'avg'
     dataset = 'new'
