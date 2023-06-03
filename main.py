@@ -147,17 +147,17 @@ def main():
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
     arr = load_arr(category, max_feature, input_len, dataset, epoch)
 
-    # print('testing...')
-    # arr.test(name)
-    # print('\n')
+    print('testing...')
+    arr.test(name)
+    print('\n')
 
     arr.info(name)
     print('\n')
 
-    # print('rating...')
-    # doc = 'Are you stupid?'
-    # score = arr.rate(name, doc)
-    # print(f'score of "{doc}": {score}')
+    print('rating...')
+    doc = 'Are you stupid?'
+    score = arr.rate(name, doc)
+    print(f'score of "{doc}": {score}')
 
 
 if __name__ == '__main__':
