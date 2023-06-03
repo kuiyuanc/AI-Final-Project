@@ -1,5 +1,7 @@
 import csv
 import nltk
+import math
+import statistics
 import numpy as np
 
 # nltk.download('all')
@@ -149,17 +151,34 @@ def info_base(dataset='new'):
     pp = pre_processor()
     lines_train, lines_valid, lines_test, _, _, _ = pp.split(lines, y, .8, .1)
 
-    print(f'number of vocabulary of {dataset} of train: ', len(nltk.FreqDist([word for line in lines_train for word in line])))
-    print(f'number of vocabulary of {dataset} of valid: ', len(nltk.FreqDist([word for line in lines_valid for word in line])))
-    print(f'number of vocabulary of {dataset} of test: ', len(nltk.FreqDist([word for line in lines_test for word in line])))
+    texts = {'train': lines_train, 'valid': lines_valid, 'test': lines_test}
 
-    print(f'average input length of {dataset} of train: ', sum(len(line) for line in lines_train) // len(lines_train))
-    print(f'average input length of {dataset} of valid: ', sum(len(line) for line in lines_valid) // len(lines_valid))
-    print(f'average input length of {dataset} of test: ', sum(len(line) for line in lines_test) // len(lines_test))
+    for set_name, texts in texts.items():
+        input_lens = [len(line) for line in texts]
+        num_text = len(texts)
 
-    print(f'max input length of {dataset} of train: ', max(len(line) for line in lines_train))
-    print(f'max input length of {dataset} of valid: ', max(len(line) for line in lines_valid))
-    print(f'max input length of {dataset} of test: ', max(len(line) for line in lines_test))
+        avg = statistics.mean(input_lens)
+        stderr = math.sqrt(statistics.variance(input_lens))
+
+        TARGET_RATIO = 0.003
+
+        num_stderr = 0
+        cut_ratio = 1
+        while cut_ratio > TARGET_RATIO:
+            num_stderr += 1
+            cut = [length for length in input_lens if length > avg + stderr * num_stderr]
+            cut_ratio = len(cut) / num_text
+
+        print(f'number of vocabulary of {dataset} of {set_name}: ', len(nltk.FreqDist([word for text in texts for word in text])))
+        print('\n')
+
+        print(f'average input length of {dataset} of {set_name}: ', avg)
+        print(f'standard error of input length of {dataset} of {set_name}: ', stderr)
+        print(f'need to add {num_stderr} standard error to reduce ratio of input being cut to {cut_ratio}')
+        print('\n')
+
+        print(f'max input length of {dataset} of train: ', max(input_lens))
+        print('\n\n')
 
 
 def info_double_LSTM(dataset='new'):
@@ -180,9 +199,6 @@ def info_double_LSTM(dataset='new'):
     texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
 
     texts = {'train': texts_train, 'valid': texts_valid, 'test': texts_test}
-
-    import math
-    import statistics
 
     for set_name, texts in texts.items():
         sentence_lengths = [len(line) for text in texts for line in text]
@@ -231,7 +247,8 @@ def main():
     dataset = 'new'
 
     # pre_process_double_LSTM(dataset)
-    info_double_LSTM(dataset)
+    info_base(dataset)
+    # info_double_LSTM(dataset)
 
 
 if __name__ == '__main__':
