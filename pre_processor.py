@@ -8,7 +8,6 @@ from nltk import pos_tag
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
-from nltk.text import TextCollection
 from sklearn.model_selection import train_test_split
 
 
