@@ -108,7 +108,6 @@ def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10
             os.mkdir(f'models/{name}')
         arr.build(category, max_feature, input_len, dataset)
 
-    print('training...')
     arr.train(name, end_epoch)
 
 
@@ -138,9 +137,10 @@ def main():
     input_len = 'avg'
     dataset = 'new'
     start_epoch = 0
-    end_epoch = 9
-    epoch = 9
+    end_epoch = 0
+    epoch = 0
 
+    print('training...')
     train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
     print('\n')
 
