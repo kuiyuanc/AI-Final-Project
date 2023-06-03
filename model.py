@@ -1,13 +1,13 @@
 import json
 import numpy as np
+import tensorflow as tf
 from pre_processor import pre_processor
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.python.keras.models import Sequential, load_model
 from tensorflow.python.keras.layers.embeddings import Embedding
 from tensorflow.python.keras.layers.recurrent import LSTM
 from tensorflow.python.keras.layers.core import Dense
-from tensorflow.python.keras.layers import Reshape
-from tensorflow.keras.layers import ConvLSTM1D
+from tensorflow.python.keras import Model
 
 
 NUM_VOCAB_OLD = 18551
@@ -41,10 +41,10 @@ class model:
         self.max_feature = max_feature
         self.input_len = input_len
         self.dataset = dataset
-        self.epoch = 0
+        self.epoch = -1
 
         self.pre_processor = pre_processor()
-        self.model = Sequential()
+        self.model = Sequential(name=str(self))
         self.training_history = []
 
     def __str__(self):
@@ -70,8 +70,13 @@ class model:
             self.epoch += 1
             self.save(path)
 
-        print('testing...')
-        self.model.evaluate(Xtest, ytest, batch_size=self.BATCH_SIZE, verbose=self.VERBOSE)
+    def test(self, path):
+        _, _, Xtest, _, _, ytest = self.pre_processor.split(self.X, self.y,
+                                                            self.TRAIN_SIZE, self.TEST_SIZE)
+
+        loss = self.model.evaluate(Xtest, ytest, batch_size=self.BATCH_SIZE, verbose=self.VERBOSE)
+        with open(path + str(self) + f' {self.epoch} test.json', 'w') as history_file:
+            history_file.write(f'{{"loss": [{loss}]}}')
 
     def load(self, path, epoch):
         self.epoch = epoch
@@ -84,6 +89,9 @@ class model:
 
     def rate(self, doc):
         return self.model.predict(self.single(doc))[0][0] * 10
+
+    def info(self):
+        print(self.model.summary())
 
     def get_max_feature(self):
         if self.max_feature == '2k':
@@ -183,7 +191,7 @@ class double_LSTM(model):
         one_hot_docs = [sequence.pad_sequences(np.array(doc, dtype=object), maxlen=self.get_sentence_len())
                         for doc in one_hot_docs]
 
-        self.X = np.array([[word for sentence in doc for wod in sentence] for doc in one_hot_docs])
+        self.X = np.array([[word for sentence in doc for word in sentence] for doc in one_hot_docs])
         self.y = np.array(golden_ratings)
 
     def single(self, doc):
@@ -193,16 +201,27 @@ class double_LSTM(model):
 
     def build(self):
         EMBEDDING_SIZE = 128
-        HIDDEN_LAYER_SIZE = 64
+        SENTENCE_FEATURE = 32
+        DOC_FEATURE = 16
         NUM_VOCAB = self.get_max_feature() + 2
         INPUT_LENGTH = self.get_review_len() * self.get_sentence_len()
-        SHAPE = (self.get_review_len(), self.get_sentence_len(), EMBEDDING_SIZE)
 
-        self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=INPUT_LENGTH))
-        # self.model.add(Reshape(SHAPE))
-        # self.model.add(ConvLSTM1D(1, self.get_sentence_len(), strides=self.get_sentence_len(),
-        #                           dropout=0.2, recurrent_dropout=0.2))
-        self.model.add(Dense(1, activation='sigmoid'))
+        embedding_model = Sequential(name='embedding_model')
+        embedding_model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=INPUT_LENGTH))
+
+        sentence_model = Sequential(name='sentence_model')
+        sentence_model.add(LSTM(SENTENCE_FEATURE, dropout=0.2, recurrent_dropout=0.2))
+
+        doc_model = Sequential(name='doc_model')
+        doc_model.add(LSTM(DOC_FEATURE, dropout=0.2, recurrent_dropout=0.2))
+        doc_model.add(Dense(1, activation='sigmoid'))
+
+        sentences = tf.reshape(embedding_model.output, shape=(-1, self.get_sentence_len(), EMBEDDING_SIZE))
+        sentences = sentence_model(sentences)
+        docs = tf.reshape(sentences, shape=(-1, self.get_review_len(), SENTENCE_FEATURE))
+        ratings = doc_model(docs)
+
+        self.model = Model(embedding_model.input, ratings)
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
     def get_sentence_len(self):
@@ -213,6 +232,6 @@ class double_LSTM(model):
 
     def get_review_len(self):
         if self.input_len == 'avg':
-            return REVIEW_LENGTH_AVG_OLd if self.dataset == 'old' else REVIEW_LENGTH_AVG_NEW
+            return REVIEW_LENGTH_AVG_OLD if self.dataset == 'old' else REVIEW_LENGTH_AVG_NEW
         else:
             return REVIEW_LENGTH_MAX_OLD if self.dataset == 'old' else REVIEW_LENGTH_MAX_NEW
