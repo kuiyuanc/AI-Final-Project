@@ -77,42 +77,39 @@ class anime_review_rater:
         self.models[name].info()
 
 
-def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10):
+def load_arr(category, max_feature, input_len, dataset, epoch, load=True):
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
 
-    print('review loading...')
     arr = anime_review_rater()
     arr.load_reviews(dataset)
 
-    print('model preparing...')
-    if start_epoch:
-        if name not in os.listdir('models'):
-            raise RuntimeError(f'model {name} does not exist')
-        elif name + f' {start_epoch - 1}.keras' not in os.listdir(f'models/{name}'):
-            raise RuntimeError(f'model {name} {start_epoch - 1} does not exist')
-        arr.load_model(name, start_epoch - 1)
-    else:
-        if name not in os.listdir('models'):
-            os.mkdir(f'models/{name}')
-        arr.build(category, max_feature, input_len, dataset)
-
-    print('training...')
-    arr.train(name, end_epoch)
-
-
-def load_arr(category, max_feature, input_len, dataset, epoch):
-    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+    if load is False:
+        return arr
 
     if name not in os.listdir('models'):
         raise RuntimeError(f'model {name} does not exist')
     elif name + f' {epoch}.keras' not in os.listdir(f'models/{name}'):
         raise RuntimeError(f'model {name} {epoch} does not exist')
 
-    arr = anime_review_rater()
-    arr.load_reviews(dataset)
-    arr.load_model(name, epoch)
+    if load:
+        arr.load_model(name, epoch)
 
     return arr
+
+
+def train(category, max_feature, input_len, dataset, start_epoch=0, end_epoch=10):
+    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+
+    arr = load_arr(category, max_feature, input_len, dataset, start_epoch - 1) if start_epoch\
+        else load_arr(category, max_feature, input_len, dataset, None, False)
+
+    if start_epoch == 0:
+        if name not in os.listdir('models'):
+            os.mkdir(f'models/{name}')
+        arr.build(category, max_feature, input_len, dataset)
+
+    print('training...')
+    arr.train(name, end_epoch)
 
 
 def main():
@@ -139,7 +136,7 @@ def main():
     category = 'base'
     max_feature = '2k'
     input_len = 'avg'
-    dataset = 'old'
+    dataset = 'new'
     start_epoch = 0
     end_epoch = 9
     epoch = 9
@@ -150,9 +147,9 @@ def main():
     name = category + '-' + max_feature + '-' + input_len + '-' + dataset
     arr = load_arr(category, max_feature, input_len, dataset, epoch)
 
-    print('testing...')
-    arr.test(name)
-    print('\n')
+    # print('testing...')
+    # arr.test(name)
+    # print('\n')
 
     arr.info(name)
     print('\n')
