@@ -84,7 +84,7 @@ class model:
 
     def save(self, path):
         self.model.save(path + str(self) + f' {self.epoch}.keras')
-        with open(path + str(self) + f' {self.epoch}.json', 'w') as history_file:
+        with open(path + str(self) + f' {self.epoch} train.json', 'w') as history_file:
             json.dump(self.training_history[-1].history, history_file)
 
     def rate(self, doc):
