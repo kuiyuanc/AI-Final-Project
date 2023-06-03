@@ -132,13 +132,13 @@ def main():
         Current assignment of argument is safe for you to try.
         It should run without error.
     '''
-    category = 'base'
+    category = 'double_LSTM'
     max_feature = '2k'
-    input_len = 'avg'
+    input_len = 'max'
     dataset = 'new'
     start_epoch = 0
-    end_epoch = 0
-    epoch = 0
+    end_epoch = 9
+    epoch = 9
 
     print('training...')
     train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
