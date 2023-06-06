@@ -2,9 +2,6 @@ import csv
 import nltk
 import statistics
 import numpy as np
-
-# nltk.download('all')
-
 from nltk import pos_tag
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -14,6 +11,26 @@ from sklearn.model_selection import train_test_split
 
 SEPARATER = 'a;weoifawbejwa.kegu@$&*@AHFEOW*A#!$)@*&@#*@)\n'
 TARGET_RATIO = 0.003
+
+try:
+    stopwords.words("english")
+except LookupError:
+    nltk.download('stopwords')
+
+try:
+    sent_tokenize('')
+except LookupError:
+    nltk.download('punkt')
+
+try:
+    pos_tag([''])
+except LookupError:
+    nltk.download('averaged_perceptron_tagger')
+
+try:
+    wordnet.NOUN
+except LookupError:
+    nltk.download('wordnet')
 
 
 class pre_processor:
