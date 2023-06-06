@@ -89,8 +89,6 @@ def load_reviews():
     with open(f'data/review.csv', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         for name, text, rating in reader:
-            if name == 'Anime':
-                continue
             rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
             reviews.append([name, text, rate])
     return reviews
