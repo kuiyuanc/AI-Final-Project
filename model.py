@@ -27,7 +27,7 @@ REVIEW_LENGTH_MAX_NEW = 169
 class model:
     """docstring for model"""
 
-    def __init__(self, category, max_feature, input_len, dataset):
+    def __init__(self, category, max_feature, input_len):
         self.TRAIN_SIZE = 0.8
         self.TEST_SIZE = 0.1
         self.BATCH_SIZE = 32
@@ -36,7 +36,6 @@ class model:
         self.category = category
         self.max_feature = max_feature
         self.input_len = input_len
-        self.dataset = dataset
         self.epoch = -1
 
         self.pre_processor = pre_processor()
@@ -44,7 +43,7 @@ class model:
         self.training_history = []
 
     def __str__(self):
-        return self.category + '-' + self.max_feature + '-' + self.input_len + '-' + self.dataset
+        return self.category + '-' + self.max_feature + '-' + self.input_len
 
     def batch(self, docs, golden_ratings, pre_done=None):
         raise NotImplementedError
