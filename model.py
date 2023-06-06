@@ -151,11 +151,10 @@ class double_LSTM(model):
         one_hot_texts = [[[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in sentence]
                           for sentence in text] for text in texts]
 
-        # sentence padding
         for i in range(len(one_hot_texts)):
             num_pad = self.get_review_len() - len(one_hot_texts[i])
             one_hot_texts[i] = one_hot_texts[i][-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_texts[i]
-        # word padding
+
         one_hot_texts = [sequence.pad_sequences(np.array(text, dtype=object), maxlen=self.get_sentence_len())
                          for text in one_hot_texts]
 
@@ -163,9 +162,9 @@ class double_LSTM(model):
         self.y = np.array(golden_ratings)
 
     def single(self, text):
-        one_hot_text = [[self.pre_processor.one_hot(word, self.get_max_feature())
-                         for word in self.pre_processor.sentence_lemmatize(sentence)]
-                        for sentence in self.pre_processor.sent_tokenize(text)]
+        one_hot_text = [[self.pre_processor.one_hot(word, self.get_max_feature()) for word in sentence]
+                        for sentence in self.pre_processor.text_lemmatize(text)]
+
         num_pad = self.get_review_len() - len(one_hot_text)
         one_hot_text = one_hot_text[-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_text
         one_hot_text = sequence.pad_sequences(np.array(one_hot_text, dtype=object), maxlen=self.get_sentence_len())
