@@ -112,9 +112,9 @@ def main():
         Current assignment of argument is safe for you to try.
         It should run without error.
     '''
-    category = 'double_LSTM'
+    category = 'base'
     max_feature = '2k'
-    input_len = 'max'
+    input_len = 'avg'
     start_epoch = 0
     end_epoch = 0
     epoch = 0
