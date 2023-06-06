@@ -27,13 +27,8 @@ class pre_processor:
         self.__UNK = "__UNK"
         self.RANDOM_STATE = 42
 
-    def docs_lemmatize(self, docs, path=None):
-        if path:
-            with open(path, encoding='utf-8') as f:
-                lines = f.readlines()
-            return [lines[i].split() for i in range(len(lines)) if i % 2 == 0]
-        else:
-            return [[word for word in self.lemmatize(doc)] for doc in docs]
+    def texts_lemmatize(self, texts):
+        return [self.lemmatize(text) for text in texts]
 
     def lemmatize(self, text):
         return [word for sentence in sent_tokenize(text) for word in self.sentence_lemmatize(sentence)]
