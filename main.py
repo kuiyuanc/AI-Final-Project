@@ -25,17 +25,6 @@ class anime_review_rater:
                 rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
                 self.reviews.append([name, text, rate])
 
-    def load_animes(self):
-        self.animes = []
-        with open(f'data/anime.csv', encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            for anime, genres, rating in reader:
-                if anime == 'Anime':
-                    continue
-                genres = [genre.replace('\'', '').replace('[', '').replace(']', '').replace(' ', '')
-                          for genre in genres.split(',')]
-                self.animes.append([anime, genres, float(rating)])
-
     def load_model(self, name, epoch):
         category, _, _ = name.split('-')
 
