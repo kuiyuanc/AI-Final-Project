@@ -37,9 +37,8 @@ class pre_processor:
         words = []
         for w, pos in pos_tag(word_tokenize(sentence.lower())):
             wordnet_pos = self.get_wordnet_pos(pos) or wordnet.NOUN
-            if word not in self.__STOP_WORDS:
-                words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
-        return words
+            words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
+        return [word for word in words if word not in self.__STOP_WORDS]
 
     def make_index(self, docs):
         bag_of_word = nltk.FreqDist([word for doc in docs for word in doc])
