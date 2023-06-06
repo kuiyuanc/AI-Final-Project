@@ -27,7 +27,7 @@ class pre_processor:
         self.RANDOM_STATE = 42
 
     def texts_lemmatize(self, texts):
-        return [self.lemmatize(text) for text in texts]
+        return [self.text_lemmatize(text) for text in texts]
 
     def text_lemmatize(self, text):
         return [self.sentence_lemmatize(sentence) for sentence in sent_tokenize(text)]
