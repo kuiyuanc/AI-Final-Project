@@ -133,7 +133,8 @@ def pre_process():
 
 
 def info_base():
-    texts = load_processed_reviews('base')
+    texts = load_processed_reviews()
+    texts = [[word for sentence in text for word in sentence] for text in texts]
 
     pp = pre_processor()
     texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, np.zeros(len(texts)), .8, .1)
@@ -162,12 +163,12 @@ def info_base():
         print(f'need to add {num_stdev} standard deviation to reduce ratio of input being cut to {cut_ratio}')
         print('\n')
 
-        print(f'max input length of of train: ', max(input_lens))
+        print(f'max input length of of {set_name}: ', max(input_lens))
         print('\n\n')
 
 
 def info_double_LSTM():
-    texts = load_processed_reviews('double_LSTM')
+    texts = load_processed_reviews()
 
     pp = pre_processor()
     texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, np.zeros(len(texts)), .8, .1)
