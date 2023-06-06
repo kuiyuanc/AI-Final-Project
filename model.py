@@ -10,7 +10,6 @@ from tensorflow.python.keras.layers.core import Dense
 from tensorflow.python.keras import Model
 
 
-NUM_VOCAB_OLD = 18551
 NUM_VOCAB_NEW = 108333
 
 INPUT_LENGTH_AVG_OLD = 410
@@ -99,10 +98,7 @@ class model:
         print(self.model.summary())
 
     def get_max_feature(self):
-        if self.max_feature == '2k':
-            return 2000
-        else:
-            return NUM_VOCAB_OLD if self.dataset == 'old' else NUM_VOCAB_NEW
+        return 2000 if self.max_feature == '2k' else NUM_VOCAB_NEW
 
 
 class base(model):
