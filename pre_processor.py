@@ -80,7 +80,7 @@ class pre_processor:
         return sent_tokenize(doc)
 
 
-def pre_process_base():
+def load_reviews():
     reviews = []
     with open(f'data/review.csv', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
@@ -89,10 +89,16 @@ def pre_process_base():
                 continue
             rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
             reviews.append([name, text, rate])
+    return reviews
+
+
+def pre_process_base():
+    reviews = load_reviews()
 
     _, texts, _ = zip(*reviews)
     pp = pre_processor()
     pp.load(texts)
+
     with open(f'bins/processed review base.md', 'w', encoding="utf-8") as md:
         for i in range(len(pp.lemmatized_docs)):
             md.write(f'# review {i}:\n')
@@ -100,14 +106,7 @@ def pre_process_base():
 
 
 def pre_process_double_LSTM():
-    reviews = []
-    with open(f'data/review.csv', encoding="utf-8") as csvfile:
-        reader = csv.reader(csvfile)
-        for name, text, rating in reader:
-            if name == 'Anime':
-                continue
-            rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
-            reviews.append([name, text, rate])
+    reviews = load_reviews()
 
     _, texts, _ = zip(*reviews)
     texts = [[sentence + '\n' for sentence in sent_tokenize(text)] for text in texts]
