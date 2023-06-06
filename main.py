@@ -135,17 +135,16 @@ def main():
     category = 'double_LSTM'
     max_feature = '2k'
     input_len = 'max'
-    dataset = 'new'
     start_epoch = 0
     end_epoch = 0
     epoch = 0
 
     print('training...')
-    train(category, max_feature, input_len, dataset, start_epoch, end_epoch)
+    train(category, max_feature, input_len, start_epoch, end_epoch)
     print('\n')
 
-    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
-    arr = load_arr(category, max_feature, input_len, dataset, epoch)
+    name = category + '-' + max_feature + '-' + input_len
+    arr = load_arr(category, max_feature, input_len, epoch)
 
     print('testing...')
     arr.test(name)
