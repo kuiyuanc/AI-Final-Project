@@ -55,8 +55,8 @@ class model:
         raise NotImplementedError
 
     def train(self, path, end_epoch):
-        Xtrain, Xval, Xtest, ytrain, yval, ytest = self.pre_processor.split(self.X, self.y,
-                                                                            self.TRAIN_SIZE, self.TEST_SIZE)
+        Xtrain, Xval, _, ytrain, yval, _ = self.pre_processor.split(self.X, self.y,
+                                                                    self.TRAIN_SIZE, self.TEST_SIZE)
 
         for i in range(self.epoch + 1, end_epoch + 1):
             print(f'epoch {i}:')
