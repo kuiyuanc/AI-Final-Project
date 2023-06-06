@@ -15,9 +15,9 @@ class anime_review_rater:
         self.reviews = []
         self.models = {}
 
-    def load_reviews(self, dataset):
+    def load_reviews(self):
         self.reviews = []
-        with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
+        with open(f'data/review.csv', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
             for name, text, rating in reader:
                 if name == 'Anime':
