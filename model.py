@@ -12,7 +12,6 @@ from tensorflow.python.keras import Model
 
 NUM_VOCAB_NEW = 108333
 
-INPUT_LENGTH_AVG_OLD = 410
 INPUT_LENGTH_AVG_NEW = 519
 INPUT_LENGTH_MAX_OLD = 2565
 # INPUT_LENGTH_MAX_NEW = 7734
@@ -141,7 +140,7 @@ class base(model):
 
     def get_input_len(self):
         if self.input_len == 'avg':
-            return INPUT_LENGTH_AVG_OLD if self.dataset == 'old' else INPUT_LENGTH_AVG_NEW
+            return INPUT_LENGTH_AVG_NEW
         else:
             return INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
 
