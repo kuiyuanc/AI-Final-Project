@@ -1,2 +1,2 @@
-# AI-Final-Project
-AI assistant for helping students decide which course to take.
+# AI-Final-Project-CrawlPart
+Crawl Top200 reviews from myanimelist.com
