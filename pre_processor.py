@@ -76,9 +76,6 @@ class pre_processor:
             return word_index[word] if word_index[word] < max_index else word_index[self.__UNK]
         return word_index[self.__UNK]
 
-    def sent_tokenize(self, text):
-        return sent_tokenize(text)
-
 
 def load_reviews():
     reviews = []
