@@ -80,6 +80,9 @@ def load_arr(category, max_feature, input_len, epoch, load=True):
 def train(category, max_feature, input_len, start_epoch=0, end_epoch=9):
     name = category + '-' + max_feature + '-' + input_len
 
+    arr = anime_review_rater()
+    arr.load_reviews()
+
     if start_epoch:
         arr = load_arr(category, max_feature, input_len, start_epoch - 1)
     else:
