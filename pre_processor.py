@@ -1,6 +1,5 @@
 import csv
 import nltk
-import math
 import statistics
 import numpy as np
 
