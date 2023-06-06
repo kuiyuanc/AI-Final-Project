@@ -26,7 +26,7 @@ class pre_processor:
     def docs_lemmatize(self, docs, path=None):
         if path:
             with open(path, encoding='utf-8') as f:
-                return [line.split() for line in f.readlines() if line[:8] != '# review']
+                return [line.split() for line in f if line[:8] != '# review']
         else:
             return [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS] for doc in docs]
 
