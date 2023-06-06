@@ -117,8 +117,8 @@ def pre_process_double_LSTM():
             md.writelines(texts[i])
 
 
-def info_base(dataset='new'):
-    with open(f'bins/processed review {dataset} base.md', encoding='utf-8') as md:
+def info_base():
+    with open(f'bins/processed review base.md', encoding='utf-8') as md:
         lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
 
     y = np.zeros(len(lines))
@@ -143,15 +143,15 @@ def info_base(dataset='new'):
             cut = [length for length in input_lens if length > avg + stderr * num_stderr]
             cut_ratio = len(cut) / num_text
 
-        print(f'number of vocabulary of {dataset} of {set_name}: ', len(nltk.FreqDist([word for text in texts for word in text])))
+        print(f'number of vocabulary of {set_name}: ', len(nltk.FreqDist([word for text in texts for word in text])))
         print('\n')
 
-        print(f'average input length of {dataset} of {set_name}: ', avg)
-        print(f'standard error of input length of {dataset} of {set_name}: ', stderr)
+        print(f'average input length of {set_name}: ', avg)
+        print(f'standard error of input length of {set_name}: ', stderr)
         print(f'need to add {num_stderr} standard error to reduce ratio of input being cut to {cut_ratio}')
         print('\n')
 
-        print(f'max input length of {dataset} of train: ', max(input_lens))
+        print(f'max input length of of train: ', max(input_lens))
         print('\n\n')
 
 
