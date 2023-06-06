@@ -120,36 +120,36 @@ def pre_process_double_LSTM():
 
 def info_base():
     with open(f'bins/processed review base.md', encoding='utf-8') as md:
-        lines = [[word for word in line.split()] for line in md.readlines() if line[:8] != '# review']
+        texts = [[word for word in text.split()] for text in md if text[:8] != '# review']
 
-    y = np.zeros(len(lines))
+    y = np.zeros(len(texts))
     pp = pre_processor()
-    lines_train, lines_valid, lines_test, _, _, _ = pp.split(lines, y, .8, .1)
+    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
 
-    texts = {'train': lines_train, 'valid': lines_valid, 'test': lines_test}
+    texts = {'train': texts_train, 'valid': texts_valid, 'test': texts_test}
+
+    TARGET_RATIO = 0.003
 
     for set_name, texts in texts.items():
-        input_lens = [len(line) for line in texts]
+        input_lens = [len(text) for text in texts]
         num_text = len(texts)
 
         avg = statistics.mean(input_lens)
-        stderr = math.sqrt(statistics.variance(input_lens))
+        stdev = statistics.stdev(input_lens)
 
-        TARGET_RATIO = 0.003
-
-        num_stderr = 0
+        num_stdev = 0
         cut_ratio = 1
         while cut_ratio > TARGET_RATIO:
-            num_stderr += 1
-            cut = [length for length in input_lens if length > avg + stderr * num_stderr]
+            num_stdev += 1
+            cut = [length for length in input_lens if length > avg + stdev * num_stdev]
             cut_ratio = len(cut) / num_text
 
         print(f'number of vocabulary of {set_name}: ', len(nltk.FreqDist([word for text in texts for word in text])))
         print('\n')
 
         print(f'average input length of {set_name}: ', avg)
-        print(f'standard error of input length of {set_name}: ', stderr)
-        print(f'need to add {num_stderr} standard error to reduce ratio of input being cut to {cut_ratio}')
+        print(f'standard error of input length of {set_name}: ', stdev)
+        print(f'need to add {num_stdev} standard deviation to reduce ratio of input being cut to {cut_ratio}')
         print('\n')
 
         print(f'max input length of of train: ', max(input_lens))
