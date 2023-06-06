@@ -19,11 +19,8 @@ INPUT_LENGTH_MAX_NEW = 3594
 SENTENCE_LENGTH_AVG_NEW = 17
 # SENTENCE_LENGTH_MAX_NEW = 464
 SENTENCE_LENGTH_MAX_NEW = 101
-REVIEW_LENGTH_AVG_OLD = 40
 REVIEW_LENGTH_AVG_NEW = 25
-REVIEW_LENGTH_MAX_OLD = 236
 # REVIEW_LENGTH_MAX_NEW = 390
-# REVIEW_LENGTH_MAX_NEW = 96
 REVIEW_LENGTH_MAX_NEW = 169
 
 
@@ -223,7 +220,4 @@ class double_LSTM(model):
         return SENTENCE_LENGTH_AVG_NEW if self.input_len == 'avg' else SENTENCE_LENGTH_MAX_NEW
 
     def get_review_len(self):
-        if self.input_len == 'avg':
-            return REVIEW_LENGTH_AVG_OLD if self.dataset == 'old' else REVIEW_LENGTH_AVG_NEW
-        else:
-            return REVIEW_LENGTH_MAX_OLD if self.dataset == 'old' else REVIEW_LENGTH_MAX_NEW
+        return REVIEW_LENGTH_AVG_NEW if self.input_len == 'avg' else REVIEW_LENGTH_MAX_NEW
