@@ -52,7 +52,7 @@ class anime_review_rater:
     def batch(self, name):
         _, texts, ratings = zip(*self.reviews)
         ratings = [rating / 10 for rating in ratings]
-        self.models[name].batch(texts, ratings, True)
+        self.models[name].batch(texts, ratings, True if 'processed reviews.txt' in os.listdir('bins') else False)
 
     def info(self, name):
         self.models[name].info()
