@@ -160,21 +160,10 @@ def info_base():
 
 
 def info_double_LSTM():
-    with open(f'bins/processed review double_LSTM.md', encoding='utf-8') as md:
-        lines = md.readlines()
+    texts = load_processed_reviews('double_LSTM')
 
-    texts = []
-    text = []
-    for i in range(1, len(lines)):
-        if lines[i][:8] == '# review':
-            texts.append([line.split() for line in text])
-            text = []
-        else:
-            text.append(lines[i])
-
-    y = np.zeros(len(texts))
     pp = pre_processor()
-    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
+    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, np.zeros(len(texts)), .8, .1)
 
     texts = {'train': texts_train, 'valid': texts_valid, 'test': texts_test}
 
