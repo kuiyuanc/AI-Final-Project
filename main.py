@@ -45,7 +45,7 @@ class anime_review_rater:
 
         self.models[name].build()
 
-    def train(self, name, end_epoch=10):
+    def train(self, name, end_epoch=9):
         self.batch(name)
         self.models[name].train(f'models/{name}/', end_epoch)
 
