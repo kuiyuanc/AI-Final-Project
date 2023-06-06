@@ -1,13 +1,2 @@
-# Overview
-
-# Get Started
-
-## Environment
-
-## Train
-
-## Test
-
-## Usage
-
-## Hyperparameter
+# AI-Final-Project-CrawlPart
+Crawl Top200 reviews from myanimelist.com
