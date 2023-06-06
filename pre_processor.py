@@ -126,16 +126,12 @@ def pre_process():
 
 
 def info_base():
-    with open(f'bins/processed review base.md', encoding='utf-8') as md:
-        texts = [[word for word in text.split()] for text in md if text[:8] != '# review']
+    texts = load_processed_reviews('base')
 
-    y = np.zeros(len(texts))
     pp = pre_processor()
-    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, y, .8, .1)
+    texts_train, texts_valid, texts_test, _, _, _ = pp.split(texts, np.zeros(len(texts)), .8, .1)
 
     texts = {'train': texts_train, 'valid': texts_valid, 'test': texts_test}
-
-    TARGET_RATIO = 0.003
 
     for set_name, texts in texts.items():
         input_lens = [len(text) for text in texts]
@@ -145,7 +141,7 @@ def info_base():
         stdev = statistics.stdev(input_lens)
 
         num_stdev = 0
-        cut_ratio = 1
+        cut_ratio = 0.5
         while cut_ratio > TARGET_RATIO:
             num_stdev += 1
             cut = [length for length in input_lens if length > avg + stdev * num_stdev]
