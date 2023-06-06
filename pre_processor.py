@@ -187,33 +187,33 @@ def info_double_LSTM():
 
         avg_sentence = statistics.mean(sentence_lengths)
         avg_review = statistics.mean(review_lengths)
-        stderr_sentence = math.sqrt(statistics.variance(sentence_lengths))
-        stderr_review = math.sqrt(statistics.variance(review_lengths))
+        stdev_sentence = statistics.stdev(sentence_lengths)
+        stdev_review = statistics.stdev(review_lengths)
 
-        TARGET_RATIO = 0.003
-
-        num_stderr_sentence = 0
+        num_stdev_sentence = 0
         cut_ratio_sentence = 1
         while cut_ratio_sentence > TARGET_RATIO:
-            num_stderr_sentence += 1
-            cut_sentence = [length for length in sentence_lengths if length > avg_sentence + stderr_sentence * num_stderr_sentence]
+            num_stdev_sentence += 1
+            cut_sentence = [length for length in sentence_lengths
+                            if length > avg_sentence + stdev_sentence * num_stdev_sentence]
             cut_ratio_sentence = len(cut_sentence) / num_sentence
 
-        num_stderr_review = 0
+        num_stdev_review = 0
         cut_ratio_review = 1
         while cut_ratio_review > TARGET_RATIO:
-            num_stderr_review += 1
-            cut_review = [length for length in review_lengths if length > avg_review + stderr_review * num_stderr_review]
+            num_stdev_review += 1
+            cut_review = [length for length in review_lengths
+                          if length > avg_review + stdev_review * num_stdev_review]
             cut_ratio_review = len(cut_review) / num_review
 
         print(f'average sentence length of {set_name}: ', avg_sentence)
-        print(f'standard error of sentence length of {set_name}: ', stderr_sentence)
-        print(f'need to add {num_stderr_sentence} standard error to reduce ratio of sentence being cut to {cut_ratio_sentence}')
+        print(f'standard deviation of sentence length of {set_name}: ', stdev_sentence)
+        print(f'need to add {num_stdev_sentence} standard error to reduce ratio of sentence being cut to {cut_ratio_sentence}')
         print('\n')
 
         print(f'average review length of {set_name}: ', avg_review)
-        print(f'standard error of review length of {set_name}: ', stderr_review)
-        print(f'need to add {num_stderr_review} standard error to reduce ratio of sentence being cut to {cut_ratio_review}')
+        print(f'standard deviation of review length of {set_name}: ', stdev_review)
+        print(f'need to add {num_stdev_review} standard error to reduce ratio of sentence being cut to {cut_ratio_review}')
         print('\n')
 
         print(f'max sentence length of {set_name}: ', max(sentence_lengths))
