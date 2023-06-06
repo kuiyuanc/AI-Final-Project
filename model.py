@@ -10,18 +10,18 @@ from tensorflow.python.keras.layers.core import Dense
 from tensorflow.python.keras import Model
 
 
-NUM_VOCAB_NEW = 108333
+NUM_VOCAB = 108333
 
-INPUT_LENGTH_AVG_NEW = 519
-# INPUT_LENGTH_MAX_NEW = 7734
-INPUT_LENGTH_MAX_NEW = 3594
+INPUT_LENGTH_AVG = 519
+# INPUT_LENGTH_MAX = 7734
+INPUT_LENGTH_MAX = 3594
 
-SENTENCE_LENGTH_AVG_NEW = 17
-# SENTENCE_LENGTH_MAX_NEW = 464
-SENTENCE_LENGTH_MAX_NEW = 101
-REVIEW_LENGTH_AVG_NEW = 25
-# REVIEW_LENGTH_MAX_NEW = 390
-REVIEW_LENGTH_MAX_NEW = 169
+SENTENCE_LENGTH_AVG = 17
+# SENTENCE_LENGTH_MAX = 464
+SENTENCE_LENGTH_MAX = 101
+REVIEW_LENGTH_AVG = 25
+# REVIEW_LENGTH_MAX = 390
+REVIEW_LENGTH_MAX = 169
 
 
 class model:
@@ -89,7 +89,7 @@ class model:
         print(self.model.summary())
 
     def get_max_feature(self):
-        return 2000 if self.max_feature == '2k' else NUM_VOCAB_NEW
+        return 2000 if self.max_feature == '2k' else NUM_VOCAB
 
 
 class base(model):
@@ -131,7 +131,7 @@ class base(model):
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
     def get_input_len(self):
-        return INPUT_LENGTH_AVG_NEW if self.input_len == 'avg' else INPUT_LENGTH_MAX_NEW
+        return INPUT_LENGTH_AVG if self.input_len == 'avg' else INPUT_LENGTH_MAX
 
 
 class double_LSTM(model):
@@ -216,7 +216,7 @@ class double_LSTM(model):
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
     def get_sentence_len(self):
-        return SENTENCE_LENGTH_AVG_NEW if self.input_len == 'avg' else SENTENCE_LENGTH_MAX_NEW
+        return SENTENCE_LENGTH_AVG if self.input_len == 'avg' else SENTENCE_LENGTH_MAX
 
     def get_review_len(self):
-        return REVIEW_LENGTH_AVG_NEW if self.input_len == 'avg' else REVIEW_LENGTH_MAX_NEW
+        return REVIEW_LENGTH_AVG if self.input_len == 'avg' else REVIEW_LENGTH_MAX
