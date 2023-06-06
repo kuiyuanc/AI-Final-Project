@@ -99,9 +99,9 @@ def pre_process_base():
             md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
 
 
-def pre_process_double_LSTM(dataset='new'):
+def pre_process_double_LSTM():
     reviews = []
-    with open(f'data/review {dataset}.csv', encoding="utf-8") as csvfile:
+    with open(f'data/review.csv', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         for name, text, rating in reader:
             if name == 'Anime':
@@ -112,7 +112,7 @@ def pre_process_double_LSTM(dataset='new'):
     _, texts, _ = zip(*reviews)
     texts = [[sentence + '\n' for sentence in sent_tokenize(text)] for text in texts]
 
-    with open(f'bins/processed review {dataset} double_LSTM.md', 'w', encoding="utf-8") as md:
+    with open(f'bins/processed review double_LSTM.md', 'w', encoding="utf-8") as md:
         for i in range(len(texts)):
             md.write(f'# review {i}:\n')
             md.writelines(texts[i])
