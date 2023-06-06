@@ -113,7 +113,7 @@ def train(category, max_feature, input_len, start_epoch=0, end_epoch=10):
 def main():
     '''
         category:
-            'base': base line
+            'base': baseline
             'double_LSTM': main approach
         max_feature:
             'all': all vocabulary
@@ -126,7 +126,7 @@ def main():
         end_epoch:
             int: training ends at which epoch
         epoch:
-            int: use which epoch to run rate()
+            int: use which epoch to run arr.test(), arr.info(), and arr.rate()
 
         Current assignment of argument is safe for you to try.
         It should run without error.
