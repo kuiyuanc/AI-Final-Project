@@ -13,7 +13,6 @@ from tensorflow.python.keras import Model
 NUM_VOCAB_NEW = 108333
 
 INPUT_LENGTH_AVG_NEW = 519
-INPUT_LENGTH_MAX_OLD = 2565
 # INPUT_LENGTH_MAX_NEW = 7734
 INPUT_LENGTH_MAX_NEW = 3594
 
@@ -139,10 +138,7 @@ class base(model):
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
     def get_input_len(self):
-        if self.input_len == 'avg':
-            return INPUT_LENGTH_AVG_NEW
-        else:
-            return INPUT_LENGTH_MAX_OLD if self.dataset == 'old' else INPUT_LENGTH_MAX_NEW
+        return INPUT_LENGTH_AVG_NEW if self.input_len == 'avg' else INPUT_LENGTH_MAX_NEW
 
 
 class double_LSTM(model):
