@@ -46,13 +46,13 @@ class anime_review_rater:
 
         self.models[name].load(f'models/{name}/', epoch)
 
-    def build(self, category, max_feature, input_len, dataset):
-        name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+    def build(self, category, max_feature, input_len):
+        name = category + '-' + max_feature + '-' + input_len
 
         if category == 'base':
-            self.models[name] = base(category, max_feature, input_len, dataset)
+            self.models[name] = base(category, max_feature, input_len)
         elif category == 'double_LSTM':
-            self.models[name] = double_LSTM(category, max_feature, input_len, dataset)
+            self.models[name] = double_LSTM(category, max_feature, input_len)
 
         self.models[name].build()
 
