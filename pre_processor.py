@@ -47,31 +47,6 @@ class pre_processor:
                                                     random_state=random_state)
         return Xtrain, Xval, Xtest, ytrain, yval, ytest
 
-    def max_doc_len(self):
-        return max(len(doc) for doc in self.lemmatized_docs)
-
-    def avg_doc_len(self):
-        return sum(len(doc) for doc in self.lemmatized_docs) // len(self.lemmatized_docs)
-
-    def num_vocab(self):
-        return len(self.bag_of_word)
-
-    def tf(self, word, doc_index):
-        raise NotImplementedError
-
-        doc = ''.join([word + ' ' for word in self.lemmatized_docs[doc_index]])
-        return self.text_collection.tf(word, doc)
-
-    def idf(self, word):
-        raise NotImplementedError
-
-        return self.text_collection.idf(word)
-
-    def tf_idf(self, word, doc_index):
-        raise NotImplementedError
-
-        return self.tf(word, doc_index) * self.idf(word)
-
     def get_wordnet_pos(self, treebank_tag):
         if treebank_tag.startswith('J'):
             return wordnet.ADJ
