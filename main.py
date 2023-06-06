@@ -11,7 +11,6 @@ class anime_review_rater:
     """docstring for anime_review_rater"""
 
     def __init__(self):
-        self.animes = []
         self.reviews = []
         self.models = {}
 
