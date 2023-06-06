@@ -77,11 +77,11 @@ class anime_review_rater:
         self.models[name].info()
 
 
-def load_arr(category, max_feature, input_len, dataset, epoch, load=True):
-    name = category + '-' + max_feature + '-' + input_len + '-' + dataset
+def load_arr(category, max_feature, input_len, epoch, load=True):
+    name = category + '-' + max_feature + '-' + input_len
 
     arr = anime_review_rater()
-    arr.load_reviews(dataset)
+    arr.load_reviews()
 
     if load is False:
         return arr
