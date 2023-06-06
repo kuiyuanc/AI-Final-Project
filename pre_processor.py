@@ -28,7 +28,18 @@ class pre_processor:
             with open(path, encoding='utf-8') as f:
                 return [line.split() for line in f if line[:8] != '# review']
         else:
-            return [[word for word in self.lemmatize(doc) if word not in self.__STOP_WORDS] for doc in docs]
+            return [[word for word in self.lemmatize(doc)] for doc in docs]
+
+    def lemmatize(self, text):
+        return [word for sentence in sent_tokenize(text) for word in self.sentence_lemmatize(sentence)]
+
+    def sentence_lemmatize(self, sentence):
+        words = []
+        for w, pos in pos_tag(word_tokenize(sentence.lower())):
+            wordnet_pos = self.get_wordnet_pos(pos) or wordnet.NOUN
+            if word not in self.__STOP_WORDS:
+                words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
+        return words
 
     def make_index(self, docs):
         bag_of_word = nltk.FreqDist([word for doc in docs for word in doc])
@@ -58,16 +69,6 @@ class pre_processor:
             return wordnet.ADV
         else:
             return None
-
-    def sentence_lemmatize(self, sentence):
-        words = []
-        for w, pos in pos_tag(word_tokenize(sentence.lower())):
-            wordnet_pos = self.get_wordnet_pos(pos) or wordnet.NOUN
-            words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
-        return words
-
-    def lemmatize(self, text):
-        return [word for sentence in sent_tokenize(text) for word in self.sentence_lemmatize(sentence)]
 
     def one_hot(self, word, max_index, word_index=None):
         word_index = word_index if word_index else self.word_index
