@@ -180,7 +180,7 @@ def info_double_LSTM():
         stdev_review = statistics.stdev(review_lengths)
 
         num_stdev_sentence = 0
-        cut_ratio_sentence = 1
+        cut_ratio_sentence = 0.5
         while cut_ratio_sentence > TARGET_RATIO:
             num_stdev_sentence += 1
             cut_sentence = [length for length in sentence_lengths
@@ -188,7 +188,7 @@ def info_double_LSTM():
             cut_ratio_sentence = len(cut_sentence) / num_sentence
 
         num_stdev_review = 0
-        cut_ratio_review = 1
+        cut_ratio_review = 0.5
         while cut_ratio_review > TARGET_RATIO:
             num_stdev_review += 1
             cut_review = [length for length in review_lengths
