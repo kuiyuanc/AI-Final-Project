@@ -5,6 +5,7 @@
 import os
 import csv
 from model import base, double_LSTM
+from pre_processor import load_reviews
 
 
 class anime_review_rater:
@@ -15,14 +16,7 @@ class anime_review_rater:
         self.models = {}
 
     def load_reviews(self):
-        self.reviews = []
-        with open(f'data/review.csv', encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            for name, text, rating in reader:
-                if name == 'Anime':
-                    continue
-                rate = int(rating.replace('Reviewer’s Rating:', '').replace(' ', '').replace('\n', ''))
-                self.reviews.append([name, text, rate])
+        self.reviews = load_reviews()
 
     def load_model(self, name, epoch):
         category, _, _ = name.split('-')
