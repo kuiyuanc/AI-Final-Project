@@ -97,12 +97,12 @@ def pre_process_base():
 
     _, texts, _ = zip(*reviews)
     pp = pre_processor()
-    pp.load(texts)
+    lemmatized_docs = pp.docs_lemmatize(texts)
 
     with open(f'bins/processed review base.md', 'w', encoding="utf-8") as md:
-        for i in range(len(pp.lemmatized_docs)):
+        for i in range(len(lemmatized_docs)):
             md.write(f'# review {i}:\n')
-            md.write(''.join([word + ' ' for word in pp.lemmatized_docs[i]] + ['\n']))
+            md.write(''.join([word + ' ' for word in lemmatized_docs[i]] + ['\n']))
 
 
 def pre_process_double_LSTM():
