@@ -13,6 +13,9 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 
 
+SEPARATER = 'a;weoifawbejwa.kegu@$&*@AHFEOW*A#!$)@*&@#*@)\n'
+
+
 class pre_processor:
     """docstring for pre_proccesor"""
 
@@ -93,30 +96,17 @@ def load_reviews():
     return reviews
 
 
-def pre_process_base():
-    reviews = load_reviews()
-
-    _, texts, _ = zip(*reviews)
-    pp = pre_processor()
-    lemmatized_docs = pp.docs_lemmatize(texts)
-
-    with open(f'bins/processed review base.md', 'w', encoding="utf-8") as md:
-        for i in range(len(lemmatized_docs)):
-            md.write(f'# review {i}:\n')
-            md.write(''.join([word + ' ' for word in lemmatized_docs[i]] + ['\n']))
-
-
-def pre_process_double_LSTM():
+def pre_process():
     reviews = load_reviews()
 
     _, texts, _ = zip(*reviews)
     pp = pre_processor()
     texts = [[pp.sentence_lemmatize(sentence) for sentence in sent_tokenize(text)] for text in texts]
 
-    with open(f'bins/processed review double_LSTM.md', 'w', encoding="utf-8") as md:
-        for i in range(len(texts)):
-            md.write(f'# review {i}:\n')
-            md.writelines([''.join([word + ' ' for word in sentence] + ['\n']) for sentence in texts[i]])
+    with open(f'bins/processed reviews.txt', 'w', encoding="utf-8") as f:
+        for text in texts:
+            f.writelines([''.join([word + ' ' for word in sentence] + ['\n']) for sentence in text])
+            f.write(SEPARATER)
 
 
 def info_base():
