@@ -137,14 +137,14 @@ class base(model):
 class double_LSTM(model):
     """docstring for double_LSTM"""
 
-    def __init__(self, category, max_feature, input_len, dataset):
-        super(double_LSTM, self).__init__(category, max_feature, input_len, dataset)
+    def __init__(self, category, max_feature, input_len):
+        super(double_LSTM, self).__init__(category, max_feature, input_len)
 
     def batch(self, docs, golden_ratings, pre_done=True):
         MAX_FEATURE = self.get_max_feature()
 
         # load processed data
-        path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
+        path = f'bins/processed review {self.category}.md' if pre_done else None
 
         with open(path, encoding='utf-8') as md:
             lines = md.readlines()
