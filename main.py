@@ -135,9 +135,9 @@ def main():
     print('\n')
 
     print('rating...')
-    doc = 'Are you stupid?'
-    score = arr.rate(name, doc)
-    print(f'score of "{doc}": {score}')
+    text = 'Any text you want to analyze.'
+    score = arr.rate(name, text)
+    print(f'score of "{text}": {score}')
 
 
 if __name__ == '__main__':
