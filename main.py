@@ -37,7 +37,7 @@ class anime_review_rater:
                 self.animes.append([anime, genres, float(rating)])
 
     def load_model(self, name, epoch):
-        category, _, _, _ = name.split('-')
+        category, _, _ = name.split('-')
 
         if category == 'base':
             self.models[name] = base(*name.split('-'))
