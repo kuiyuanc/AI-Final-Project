@@ -30,8 +30,8 @@ class pre_processor:
     def texts_lemmatize(self, texts):
         return [self.lemmatize(text) for text in texts]
 
-    def lemmatize(self, text):
-        return [word for sentence in sent_tokenize(text) for word in self.sentence_lemmatize(sentence)]
+    def text_lemmatize(self, text):
+        return [self.sentence_lemmatize(sentence) for sentence in sent_tokenize(text)]
 
     def sentence_lemmatize(self, sentence):
         words = []
