@@ -95,13 +95,13 @@ class model:
 class base(model):
     """docstring for base"""
 
-    def __init__(self, category, max_feature, input_len, dataset):
-        super(base, self).__init__(category, max_feature, input_len, dataset)
+    def __init__(self, category, max_feature, input_len):
+        super(base, self).__init__(category, max_feature, input_len)
 
     def batch(self, docs, golden_ratings, pre_done=None):
         MAX_FEATURE = self.get_max_feature()
 
-        path = f'bins/processed review {self.dataset} {self.category}.md' if pre_done else None
+        path = f'bins/processed review {self.category}.md' if pre_done else None
 
         lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
 
