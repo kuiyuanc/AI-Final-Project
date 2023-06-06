@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import tensorflow as tf
-from pre_processor import pre_processor
+from pre_processor import pre_processor, load_processed_reviews
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.python.keras.models import Sequential, load_model
 from tensorflow.python.keras.layers.embeddings import Embedding
@@ -98,26 +98,25 @@ class base(model):
     def __init__(self, category, max_feature, input_len):
         super(base, self).__init__(category, max_feature, input_len)
 
-    def batch(self, texts, golden_ratings, pre_done=None):
+    def batch(self, texts, golden_ratings, pre_done=False):
         MAX_FEATURE = self.get_max_feature()
 
-        path = f'bins/processed review {self.category}.md' if pre_done else None
-
-        lemmatized_texts = self.pre_processor.texts_lemmatize(texts, path)
+        lemmatized_texts = load_processed_reviews() if pre_done else self.pre_processor.texts_lemmatize(texts)
+        lemmatized_texts = [[word for sentence in text for word in sentence] for text in texts]
 
         lemmatized_texts_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_texts, golden_ratings,
-                                                                        self.TRAIN_SIZE, self.TEST_SIZE)
+                                                                         self.TRAIN_SIZE, self.TEST_SIZE)
 
         word_index = self.pre_processor.make_index(lemmatized_texts_train)
         one_hot_texts = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in text]
-                        for text in lemmatized_texts]
+                         for text in lemmatized_texts]
 
         self.X = sequence.pad_sequences(np.array(one_hot_texts, dtype=object), maxlen=self.get_input_len())
         self.y = np.array(golden_ratings)
 
     def single(self, text):
-        one_hot_text = [self.pre_processor.one_hot(word, self.get_max_feature())
-                       for word in self.pre_processor.text_lemmatize(text)]
+        text = [word for sentence in self.pre_processor.text_lemmatize(text) for word in sentence]
+        one_hot_text = [self.pre_processor.one_hot(word, self.get_max_feature()) for word in text]
         return sequence.pad_sequences(np.array([one_hot_text]), maxlen=self.get_input_len())
 
     def build(self):
@@ -140,34 +139,17 @@ class double_LSTM(model):
     def __init__(self, category, max_feature, input_len):
         super(double_LSTM, self).__init__(category, max_feature, input_len)
 
-    def batch(self, texts, golden_ratings, pre_done=True):
+    def batch(self, texts, golden_ratings, pre_done=False):
         MAX_FEATURE = self.get_max_feature()
 
-        # load processed data
-        path = f'bins/processed review {self.category}.md' if pre_done else None
+        texts = load_processed_reviews() if pre_done else self.pre_processor.texts_lemmatize(texts)
 
-        with open(path, encoding='utf-8') as md:
-            lines = md.readlines()
-
-        # data into 3D list (num_text, num_sentence, num_word)
-        texts = []
-        text = []
-        for i in range(1, len(lines)):
-            if lines[i][:8] == '# review':
-                texts.append([line.split() for line in text])
-                text = []
-            else:
-                text.append(lines[i])
-        texts.append([line.split() for line in text])
-
-        # one-hot encoding of word
         texts_train, _, _, _, _, _ = self.pre_processor.split(texts, golden_ratings, self.TRAIN_SIZE, self.TEST_SIZE)
 
-        lemmatized_texts_train = [[word for sentence in text for word in sentence] for text in texts_train]
-
-        word_index = self.pre_processor.make_index(lemmatized_texts_train)
+        word_index = self.pre_processor.make_index([[word for sentence in text for word in sentence]
+                                                    for text in texts_train])
         one_hot_texts = [[[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in sentence]
-                         for sentence in text] for text in texts]
+                          for sentence in text] for text in texts]
 
         # sentence padding
         for i in range(len(one_hot_texts)):
@@ -175,15 +157,15 @@ class double_LSTM(model):
             one_hot_texts[i] = one_hot_texts[i][-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_texts[i]
         # word padding
         one_hot_texts = [sequence.pad_sequences(np.array(text, dtype=object), maxlen=self.get_sentence_len())
-                        for text in one_hot_texts]
+                         for text in one_hot_texts]
 
         self.X = np.array([[word for sentence in text for word in sentence] for text in one_hot_texts])
         self.y = np.array(golden_ratings)
 
     def single(self, text):
         one_hot_text = [[self.pre_processor.one_hot(word, self.get_max_feature())
-                        for word in self.pre_processor.sentence_lemmatize(sentence)]
-                       for sentence in self.pre_processor.sent_tokenize(text)]
+                         for word in self.pre_processor.sentence_lemmatize(sentence)]
+                        for sentence in self.pre_processor.sent_tokenize(text)]
         num_pad = self.get_review_len() - len(one_hot_text)
         one_hot_text = one_hot_text[-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_text
         one_hot_text = sequence.pad_sequences(np.array(one_hot_text, dtype=object), maxlen=self.get_sentence_len())
