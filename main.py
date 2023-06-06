@@ -88,13 +88,13 @@ def load_arr(category, max_feature, input_len, epoch, load=True):
 def train(category, max_feature, input_len, start_epoch=0, end_epoch=10):
     name = category + '-' + max_feature + '-' + input_len
 
-    arr = load_arr(category, max_feature, input_len, start_epoch - 1) if start_epoch\
-        else load_arr(category, max_feature, input_len, None, False)
-
-    if start_epoch == 0:
-        if name not in os.listdir('models'):
-            os.mkdir(f'models/{name}')
+    if start_epoch:
+        arr = load_arr(category, max_feature, input_len, start_epoch - 1)
+    else:
         arr.build(category, max_feature, input_len)
+
+    if name not in os.listdir('models'):
+        os.mkdir(f'models/{name}')
 
     arr.train(name, end_epoch)
 
