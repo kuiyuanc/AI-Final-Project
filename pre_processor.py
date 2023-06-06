@@ -110,12 +110,13 @@ def pre_process_double_LSTM():
     reviews = load_reviews()
 
     _, texts, _ = zip(*reviews)
-    texts = [[sentence + '\n' for sentence in sent_tokenize(text)] for text in texts]
+    pp = pre_processor()
+    texts = [[pp.sentence_lemmatize(sentence) for sentence in sent_tokenize(text)] for text in texts]
 
     with open(f'bins/processed review double_LSTM.md', 'w', encoding="utf-8") as md:
         for i in range(len(texts)):
             md.write(f'# review {i}:\n')
-            md.writelines(texts[i])
+            md.writelines([''.join([word + ' ' for word in sentence] + ['\n']) for sentence in texts[i]])
 
 
 def info_base():
