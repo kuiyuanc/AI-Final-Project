@@ -77,7 +77,7 @@ def load_arr(category, max_feature, input_len, epoch, load=True):
     return arr
 
 
-def train(category, max_feature, input_len, start_epoch=0, end_epoch=10):
+def train(category, max_feature, input_len, start_epoch=0, end_epoch=9):
     name = category + '-' + max_feature + '-' + input_len
 
     if start_epoch:
