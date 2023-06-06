@@ -218,11 +218,7 @@ def info_double_LSTM():
 
 
 def main():
-    dataset = 'new'
-
-    # pre_process_double_LSTM(dataset)
-    info_base(dataset)
-    # info_double_LSTM(dataset)
+    pass
 
 
 if __name__ == '__main__':
