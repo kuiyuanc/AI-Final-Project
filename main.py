@@ -91,8 +91,7 @@ def load_arr(category, max_feature, input_len, epoch, load=True):
     elif name + f' {epoch}.keras' not in os.listdir(f'models/{name}'):
         raise RuntimeError(f'model {name} {epoch} does not exist')
 
-    if load:
-        arr.load_model(name, epoch)
+    arr.load_model(name, epoch)
 
     return arr
 
