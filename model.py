@@ -122,11 +122,11 @@ class base(model):
 
     def build(self):
         EMBEDDING_SIZE = 128
-        REVIEW_FEATURE = 64
+        TEXT_FEATURE = 64
         NUM_VOCAB = self.get_max_feature() + 2
 
         self.model.add(Embedding(NUM_VOCAB, EMBEDDING_SIZE, input_length=self.get_input_len()))
-        self.model.add(LSTM(REVIEW_FEATURE, dropout=0.2, recurrent_dropout=0.2))
+        self.model.add(LSTM(TEXT_FEATURE, dropout=0.2, recurrent_dropout=0.2))
         self.model.add(Dense(1, activation='sigmoid'))
         self.model.compile(loss="mean_squared_error", optimizer="adam")
 
@@ -193,7 +193,7 @@ class double_LSTM(model):
     def build(self):
         EMBEDDING_SIZE = 128
         SENTENCE_FEATURE = 32
-        DOC_FEATURE = 16
+        TEXT_FEATURE = 16
         NUM_VOCAB = self.get_max_feature() + 2
         INPUT_LENGTH = self.get_review_len() * self.get_sentence_len()
 
@@ -204,7 +204,7 @@ class double_LSTM(model):
         sentence_model.add(LSTM(SENTENCE_FEATURE, dropout=0.2, recurrent_dropout=0.2))
 
         text_model = Sequential(name='text_model')
-        text_model.add(LSTM(DOC_FEATURE, dropout=0.2, recurrent_dropout=0.2))
+        text_model.add(LSTM(TEXT_FEATURE, dropout=0.2, recurrent_dropout=0.2))
         text_model.add(Dense(1, activation='sigmoid'))
 
         sentences = tf.reshape(embedding_model.output, shape=(-1, self.get_sentence_len(), EMBEDDING_SIZE))
