@@ -86,7 +86,7 @@ def load_reviews():
     return reviews
 
 
-def load_processed_reviews(category):
+def load_processed_reviews():
     with open(f'bins/processed reviews.txt', encoding='utf-8') as f:
         lines = f.readlines()
 
@@ -99,8 +99,7 @@ def load_processed_reviews(category):
         else:
             text.append(lines[i].split())
 
-    return texts if category == 'double_LSTM' \
-        else [[word for sentence in text for word in sentence] for text in texts]
+    return texts
 
 
 def pre_process():
