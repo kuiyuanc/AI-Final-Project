@@ -40,8 +40,8 @@ class pre_processor:
             words.append(self.lemmatizer.lemmatize(w, pos=wordnet_pos))
         return [word for word in words if word not in self.__STOP_WORDS]
 
-    def make_index(self, docs):
-        bag_of_word = nltk.FreqDist([word for doc in docs for word in doc])
+    def make_index(self, texts):
+        bag_of_word = nltk.FreqDist([word for text in texts for word in text])
         self.word_index = {x[0]: i + 2 for i, x in enumerate(bag_of_word.most_common())}
         self.word_index |= {self.__PAD: 0, self.__UNK: 1}
         return self.word_index
@@ -76,8 +76,8 @@ class pre_processor:
             return word_index[word] if word_index[word] < max_index else word_index[self.__UNK]
         return word_index[self.__UNK]
 
-    def sent_tokenize(self, doc):
-        return sent_tokenize(doc)
+    def sent_tokenize(self, text):
+        return sent_tokenize(text)
 
 
 def load_reviews():
