@@ -45,10 +45,10 @@ class model:
     def __str__(self):
         return self.category + '-' + self.max_feature + '-' + self.input_len
 
-    def batch(self, docs, golden_ratings, pre_done=None):
+    def batch(self, texts, golden_ratings, pre_done=None):
         raise NotImplementedError
 
-    def single(self, doc):
+    def single(self, text):
         raise NotImplementedError
 
     def build(self):
@@ -82,8 +82,8 @@ class model:
         with open(path + str(self) + f' {self.epoch} train.json', 'w') as history_file:
             json.dump(self.training_history[-1].history, history_file)
 
-    def rate(self, doc):
-        return self.model.predict(self.single(doc))[0][0] * 10
+    def rate(self, text):
+        return self.model.predict(self.single(text))[0][0] * 10
 
     def info(self):
         print(self.model.summary())
@@ -98,27 +98,27 @@ class base(model):
     def __init__(self, category, max_feature, input_len):
         super(base, self).__init__(category, max_feature, input_len)
 
-    def batch(self, docs, golden_ratings, pre_done=None):
+    def batch(self, texts, golden_ratings, pre_done=None):
         MAX_FEATURE = self.get_max_feature()
 
         path = f'bins/processed review {self.category}.md' if pre_done else None
 
-        lemmatized_docs = self.pre_processor.docs_lemmatize(docs, path)
+        lemmatized_texts = self.pre_processor.texts_lemmatize(texts, path)
 
-        lemmatized_docs_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_docs, golden_ratings,
+        lemmatized_texts_train, _, _, _, _, _ = self.pre_processor.split(lemmatized_texts, golden_ratings,
                                                                         self.TRAIN_SIZE, self.TEST_SIZE)
 
-        word_index = self.pre_processor.make_index(lemmatized_docs_train)
-        one_hot_docs = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in doc]
-                        for doc in lemmatized_docs]
+        word_index = self.pre_processor.make_index(lemmatized_texts_train)
+        one_hot_texts = [[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in text]
+                        for text in lemmatized_texts]
 
-        self.X = sequence.pad_sequences(np.array(one_hot_docs, dtype=object), maxlen=self.get_input_len())
+        self.X = sequence.pad_sequences(np.array(one_hot_texts, dtype=object), maxlen=self.get_input_len())
         self.y = np.array(golden_ratings)
 
-    def single(self, doc):
-        one_hot_doc = [self.pre_processor.one_hot(word, self.get_max_feature())
-                       for word in self.pre_processor.lemmatize(doc)]
-        return sequence.pad_sequences(np.array([one_hot_doc]), maxlen=self.get_input_len())
+    def single(self, text):
+        one_hot_text = [self.pre_processor.one_hot(word, self.get_max_feature())
+                       for word in self.pre_processor.text_lemmatize(text)]
+        return sequence.pad_sequences(np.array([one_hot_text]), maxlen=self.get_input_len())
 
     def build(self):
         EMBEDDING_SIZE = 128
@@ -140,7 +140,7 @@ class double_LSTM(model):
     def __init__(self, category, max_feature, input_len):
         super(double_LSTM, self).__init__(category, max_feature, input_len)
 
-    def batch(self, docs, golden_ratings, pre_done=True):
+    def batch(self, texts, golden_ratings, pre_done=True):
         MAX_FEATURE = self.get_max_feature()
 
         # load processed data
@@ -149,46 +149,46 @@ class double_LSTM(model):
         with open(path, encoding='utf-8') as md:
             lines = md.readlines()
 
-        # data into 3D list (num_doc, num_sentence, num_word)
-        docs = []
-        doc = []
+        # data into 3D list (num_text, num_sentence, num_word)
+        texts = []
+        text = []
         for i in range(1, len(lines)):
             if lines[i][:8] == '# review':
-                docs.append([line.split() for line in doc])
-                doc = []
+                texts.append([line.split() for line in text])
+                text = []
             else:
-                doc.append(lines[i])
-        docs.append([line.split() for line in doc])
+                text.append(lines[i])
+        texts.append([line.split() for line in text])
 
         # one-hot encoding of word
-        docs_train, _, _, _, _, _ = self.pre_processor.split(docs, golden_ratings, self.TRAIN_SIZE, self.TEST_SIZE)
+        texts_train, _, _, _, _, _ = self.pre_processor.split(texts, golden_ratings, self.TRAIN_SIZE, self.TEST_SIZE)
 
-        lemmatized_docs_train = [[word for sentence in doc for word in sentence] for doc in docs_train]
+        lemmatized_texts_train = [[word for sentence in text for word in sentence] for text in texts_train]
 
-        word_index = self.pre_processor.make_index(lemmatized_docs_train)
-        one_hot_docs = [[[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in sentence]
-                         for sentence in doc] for doc in docs]
+        word_index = self.pre_processor.make_index(lemmatized_texts_train)
+        one_hot_texts = [[[self.pre_processor.one_hot(word, MAX_FEATURE, word_index) for word in sentence]
+                         for sentence in text] for text in texts]
 
         # sentence padding
-        for i in range(len(one_hot_docs)):
-            num_pad = self.get_review_len() - len(one_hot_docs[i])
-            one_hot_docs[i] = one_hot_docs[i][-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_docs[i]
+        for i in range(len(one_hot_texts)):
+            num_pad = self.get_review_len() - len(one_hot_texts[i])
+            one_hot_texts[i] = one_hot_texts[i][-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_texts[i]
         # word padding
-        one_hot_docs = [sequence.pad_sequences(np.array(doc, dtype=object), maxlen=self.get_sentence_len())
-                        for doc in one_hot_docs]
+        one_hot_texts = [sequence.pad_sequences(np.array(text, dtype=object), maxlen=self.get_sentence_len())
+                        for text in one_hot_texts]
 
-        self.X = np.array([[word for sentence in doc for word in sentence] for doc in one_hot_docs])
+        self.X = np.array([[word for sentence in text for word in sentence] for text in one_hot_texts])
         self.y = np.array(golden_ratings)
 
-    def single(self, doc):
-        one_hot_doc = [[self.pre_processor.one_hot(word, self.get_max_feature())
+    def single(self, text):
+        one_hot_text = [[self.pre_processor.one_hot(word, self.get_max_feature())
                         for word in self.pre_processor.sentence_lemmatize(sentence)]
-                       for sentence in self.pre_processor.sent_tokenize(doc)]
-        num_pad = self.get_review_len() - len(one_hot_doc)
-        one_hot_doc = one_hot_doc[-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_doc
-        one_hot_doc = sequence.pad_sequences(np.array(one_hot_doc, dtype=object), maxlen=self.get_sentence_len())
+                       for sentence in self.pre_processor.sent_tokenize(text)]
+        num_pad = self.get_review_len() - len(one_hot_text)
+        one_hot_text = one_hot_text[-num_pad:] if num_pad < 0 else [[]] * num_pad + one_hot_text
+        one_hot_text = sequence.pad_sequences(np.array(one_hot_text, dtype=object), maxlen=self.get_sentence_len())
 
-        return np.array([[word for sentence in one_hot_doc for word in sentence]])
+        return np.array([[word for sentence in one_hot_text for word in sentence]])
 
     def build(self):
         EMBEDDING_SIZE = 128
