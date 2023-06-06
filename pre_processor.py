@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 
 
 SEPARATER = 'a;weoifawbejwa.kegu@$&*@AHFEOW*A#!$)@*&@#*@)\n'
+TARGET_RATIO = 0.003
 
 
 class pre_processor:
