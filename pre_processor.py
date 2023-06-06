@@ -141,7 +141,7 @@ def info_base():
         print('\n')
 
         print(f'average input length of {set_name}: ', avg)
-        print(f'standard error of input length of {set_name}: ', stdev)
+        print(f'standard deviation of input length of {set_name}: ', stdev)
         print(f'need to add {num_stdev} standard deviation to reduce ratio of input being cut to {cut_ratio}')
         print('\n')
 
@@ -187,12 +187,12 @@ def info_double_LSTM():
 
         print(f'average sentence length of {set_name}: ', avg_sentence)
         print(f'standard deviation of sentence length of {set_name}: ', stdev_sentence)
-        print(f'need to add {num_stdev_sentence} standard error to reduce ratio of sentence being cut to {cut_ratio_sentence}')
+        print(f'need to add {num_stdev_sentence} standard deviation to reduce ratio of sentence being cut to {cut_ratio_sentence}')
         print('\n')
 
         print(f'average review length of {set_name}: ', avg_review)
         print(f'standard deviation of review length of {set_name}: ', stdev_review)
-        print(f'need to add {num_stdev_review} standard error to reduce ratio of sentence being cut to {cut_ratio_review}')
+        print(f'need to add {num_stdev_review} standard deviation to reduce ratio of sentence being cut to {cut_ratio_review}')
         print('\n')
 
         print(f'max sentence length of {set_name}: ', max(sentence_lengths))
