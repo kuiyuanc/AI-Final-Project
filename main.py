@@ -3,7 +3,6 @@
 '''
 
 import os
-import csv
 from model import base, double_LSTM
 from pre_processor import load_reviews
 
